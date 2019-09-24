@@ -1,0 +1,51 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$app-primary: mat-palette($mat-purple);
+$app-accent: mat-palette($mat-green);
+$app-warn: mat-palette($mat-amber);
+
+$app-theme: mat-dark-theme($app-primary, $app-accent, $app-warn);
+
+@include angular-material-theme($app-theme);
+
+$primary: mat-color($app-primary);
+$accent: mat-color($app-accent);
+$warn: mat-color($app-warn);
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+mat-toolbar span {
+  cursor: pointer;
+}
+
+mat-card-title {
+  margin-left: 16px;
+  padding-top: 16px;
+}
+
+mat-card-subtitle {
+  margin-left: 16px;
+}
+
+mat-card {
+  width: calc(100% - 96px);
+  margin: 32px;
+}
+
+table {
+  width: 100%;
+  padding-bottom: 16px;
+}
+
+.text-link {
+  cursor: pointer;
+}
+
+.options-col {
+  width: 25%;
+}

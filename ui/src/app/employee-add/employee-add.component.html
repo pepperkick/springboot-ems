@@ -1,0 +1,47 @@
+<mat-toolbar color="primary" class="mat-elevation-z8">
+  <span routerLink="/">EMS</span>
+</mat-toolbar>
+
+<mat-card>
+  <mat-card-title>New Employee</mat-card-title>
+  <mat-card-subtitle>Enter the following details to add a new employee</mat-card-subtitle>
+  <div class="form">
+    <mat-form-field>
+      <input matInput required placeholder="Name" [(ngModel)]="employeeInfo.name">
+    </mat-form-field>
+    <br>
+    <mat-form-field>
+      <mat-select required placeholder="Designation" [(ngModel)]="employeeInfo.designation">
+        <mat-option *ngFor="let designation of designations" [value]="designation.title">{{ designation.title }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field>
+      <mat-select  placeholder="Manager" [(ngModel)]="employeeInfo.manager">
+        <mat-option *ngFor="let employee of employees" [value]="employee.id">{{ employee.name }} ({{ employee.jobTitle }})</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br>
+    <button mat-raised-button color="primary" (click)="addEmployee()">SUBMIT</button>
+  </div>
+</mat-card>
+<mat-card>
+  <mat-card-title>New Designation</mat-card-title>
+  <mat-card-subtitle>Enter the following details to add a new designation</mat-card-subtitle>
+  <div class="form">
+    <mat-form-field>
+      <input matInput required placeholder="Name" [(ngModel)]="designationInfo.name">
+    </mat-form-field>
+    <br>
+    <mat-form-field>
+      <mat-select  placeholder="Designation" [(ngModel)]="designationInfo.higher">
+        <mat-option *ngFor="let designation of designations" [value]="designation.id">{{ designation.title }} </mat-option>
+        <mat-hint>Will Assign the new designation below this designation.</mat-hint>
+      </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-slide-toggle [(ngModel)]="designationInfo.equals">Equals</mat-slide-toggle>
+    <br>
+    <button mat-raised-button color="primary" (click)="addDesignation()">SUBMIT</button>
+  </div>
+</mat-card>

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  server:
+    build: .
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    container_name: ems
+  mysql:
+    image: mysql
+    env_file:
+      - .env
+    container_name: mysql
