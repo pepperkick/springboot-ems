@@ -4,6 +4,7 @@ import com.pepperkick.ems.object.Designation;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "EMPLOYEE")
@@ -17,8 +18,9 @@ public class Employee {
     private String name;
 
     @Nullable
-    @Column(name = "PARENT")
-    private Integer parent;
+    @OneToOne
+    @JoinColumn(name = "PARENT")
+    private Employee parent;
 
     @Column(name = "DESIGNATION")
     private Designation designation;
@@ -39,11 +41,11 @@ public class Employee {
         this.name = name;
     }
 
-    public Integer getParent() {
+    public Employee getParent() {
         return parent;
     }
 
-    public void setParent(Integer parent) {
+    public void setParent(Employee parent) {
         this.parent = parent;
     }
 
