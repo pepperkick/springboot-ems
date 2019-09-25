@@ -1,11 +1,17 @@
 package com.pepperkick.ems.entity;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pepperkick.ems.util.SortEmployees;
+import org.hibernate.annotations.*;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.util.SortedSet;
 
 @Entity
 @Table(name = "EMPLOYEE")
@@ -18,13 +24,28 @@ public class Employee {
     @Column(name = "NAME")
     private String name;
 
+    @Transient
     private String jobTitle;
 
     @Nullable
     @OneToOne
+    @JoinColumn(name = "MANAGER")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JoinColumn(name = "PARENT")
-    private Employee parent;
+    @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
+    private Employee manager;
+
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
+    @SortComparator(SortEmployees.class)
+    private SortedSet<Employee> colleagues;
+
+    @OneToMany
+    @JoinColumn(name = "MANAGER")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
+    @SortComparator(SortEmployees.class)
+    private SortedSet<Employee> subordinates;
 
     @OneToOne
     @JsonIgnore
@@ -47,14 +68,6 @@ public class Employee {
         this.name = name;
     }
 
-    public Employee getParent() {
-        return parent;
-    }
-
-    public void setParent(Employee parent) {
-        this.parent = parent;
-    }
-
     public Designation getDesignation() {
         return designation;
     }
@@ -68,6 +81,34 @@ public class Employee {
     }
 
     public void setJobTitle(String jobTitle) {
-        this.jobTitle = jobTitle;
+//        this.jobTitle = jobTitle;
+    }
+
+    public SortedSet<Employee> getSubordinates() {
+        return subordinates;
+    }
+
+    public SortedSet<Employee> getSubordinates(Employee e) {
+        SortedSet<Employee> temp = subordinates;
+        temp.remove(e);
+        return temp;
+    }
+
+    @Nullable
+    public Employee getManager() {
+        return manager;
+    }
+
+    public void setManager(@Nullable Employee manager) {
+        this.manager = manager;
+    }
+
+    public SortedSet<Employee> getColleagues() {
+        try {
+            assert manager != null;
+            return manager.getSubordinates(this);
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 }
