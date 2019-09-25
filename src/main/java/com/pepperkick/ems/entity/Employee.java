@@ -1,6 +1,7 @@
 package com.pepperkick.ems.entity;
 
-import com.pepperkick.ems.object.Designation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
@@ -17,12 +18,17 @@ public class Employee {
     @Column(name = "NAME")
     private String name;
 
+    private String jobTitle;
+
     @Nullable
     @OneToOne
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JoinColumn(name = "PARENT")
     private Employee parent;
 
-    @Column(name = "DESIGNATION")
+    @OneToOne
+    @JsonIgnore
+    @JoinColumn(name = "DESIGNATION")
     private Designation designation;
 
     public int getId() {
@@ -55,5 +61,13 @@ public class Employee {
 
     public void setDesignation(Designation designation) {
         this.designation = designation;
+    }
+
+    public String getJobTitle() {
+        return designation.getTitle();
+    }
+
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
     }
 }
