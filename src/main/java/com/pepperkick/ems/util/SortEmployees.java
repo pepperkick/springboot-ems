@@ -12,7 +12,7 @@ public class SortEmployees implements Comparator<Employee> {
             int nameDiff = o1.getName().compareTo(o2.getName());
             if (nameDiff == 0) {
                 int idDiff = o1.getId() - o2.getId();
-                return idDiff >= 0 ? 1 : -1;
+                return Integer.compare(idDiff, 0);
             } else {
                 return nameDiff > 0 ? 1 : -1;
             }
