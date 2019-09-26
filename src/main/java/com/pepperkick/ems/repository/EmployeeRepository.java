@@ -10,5 +10,6 @@ import java.util.List;
 
 @Repository
 public interface EmployeeRepository extends CrudRepository<Employee, Integer> {
+    Employee findById(int id);
     List<Employee> findEmployeeByDesignation(Designation designation);
 }
