@@ -90,12 +90,37 @@ public class EmployeeRoute {
         if (id < 0)
             return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
 
-        Optional<Employee> employee = employeeRepository.findById(id);
+        Employee employee = employeeRepository.findById(id);
 
-        if (employee.isPresent())
+        if (employee != null)
             return new ResponseEntity<Object>(employee, HttpStatus.OK);
 
         return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
+    public ResponseEntity put(@PathVariable int id, @RequestBody Map<String, Object> payload) {
+        String name = (String) payload.get("name");
+        String job = (String) payload.get("jobTitle");
+        Integer managerId = Integer.valueOf("" + payload.get("managerId"));
+        boolean replace = false;
+
+        if (payload.get("replace") !=  null)
+            replace = Boolean.parseBoolean("" + payload.get("replace"));
+
+        Employee employee = employeeRepository.findById(id);
+
+        if (employee == null)
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+
+        if (replace) {
+
+        } else {
+            if (name != null) employee.setName(name);
+            employeeRepository.save(employee);
+        }
+
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/text")
@@ -103,14 +128,10 @@ public class EmployeeRoute {
         if (id < 0)
             return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
 
-        Optional<Employee> optional = employeeRepository.findById(id);
-        Employee employee;
+        Employee employee = employeeRepository.findById(id);;
 
-        if (optional.isPresent()) {
-            employee = optional.get();
-        } else {
+        if (employee == null)
             return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
 
         if (employee.getDesignation().getLevel() == 1) {
             if (!employee.getSubordinates().isEmpty())
