@@ -25,6 +25,7 @@ public class EmployeeRoute {
     @Autowired
     private DesignationRepository designationRepository;
     private Designation mainDesignation = null;
+    private Designation leastDesignation = null;
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
 
@@ -32,6 +33,8 @@ public class EmployeeRoute {
     public void init() {
         List<Designation> designations = designationRepository.findByLevel(1);
         if (designations.size() == 1) mainDesignation = designations.get(0);
+        Designation designation = designationRepository.findByTitle("Intern");
+        if (designations.size() == 1) leastDesignation = designation;
     }
 
     @RequestMapping(method= RequestMethod.GET, produces = "application/json")
@@ -49,14 +52,14 @@ public class EmployeeRoute {
     @RequestMapping(method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity post(@RequestBody Map<String, Object> payload) {
         String name = (String) payload.get("name");
-        String job = (String) payload.get("jobTitle");
-        Integer managerId = Integer.valueOf("" + payload.get("managerId"));
+        String jobTitle = (String) payload.get("jobTitle");
+        int managerId = Integer.parseInt("" + payload.get("managerId"));
 
         if (name.compareTo("") == 0) {
             return new ResponseEntity<>("Name cannot be empty", HttpStatus.NOT_FOUND);
         }
 
-        Designation designation = designationRepository.findByTitle(job);
+        Designation designation = designationRepository.findByTitle(jobTitle);
         if (designation == null){
             return new ResponseEntity<>("Designation not found", HttpStatus.NOT_FOUND);
         } else if (designation.getLevel() == 1) {
@@ -69,16 +72,16 @@ public class EmployeeRoute {
                 return new ResponseEntity<>("Only one director can be present at one time", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
-        Optional<Employee> manager = employeeRepository.findById(managerId);
-        if (!manager.isPresent()) {
+        Employee manager = employeeRepository.findById(managerId);
+        if (manager == null) {
             return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
-        } else if (manager.get().getDesignation().getLevel() >= designation.getLevel()) {
+        } else if (manager.getDesignation().getLevel() >= designation.getLevel()) {
             return new ResponseEntity<>("Manager cannot be designated lower or equal level to subordinate", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         Employee newEmployee = new Employee();
         newEmployee.setName(name);
-        newEmployee.setManager(manager.get());
+        newEmployee.setManager(manager);
         newEmployee.setDesignation(designation);
         employeeRepository.save(newEmployee);
 
@@ -100,11 +103,17 @@ public class EmployeeRoute {
 
     @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
     public ResponseEntity put(@PathVariable int id, @RequestBody Map<String, Object> payload) {
-        String name = (String) payload.get("name");
-        String job = (String) payload.get("jobTitle");
-        Integer managerId = Integer.valueOf("" + payload.get("managerId"));
+        String name = null;
+        String jobTitle = null;
+        int managerId = -1;
         boolean replace = false;
 
+        if (payload.get("name") != null)
+            name = (String) payload.get("name");
+        if (payload.get("jobTitle") != null)
+            jobTitle = (String) payload.get("jobTitle");
+        if (payload.get("managerId") != null)
+            managerId = Integer.parseInt("" + payload.get("managerId"));
         if (payload.get("replace") !=  null)
             replace = Boolean.parseBoolean("" + payload.get("replace"));
 
@@ -114,9 +123,74 @@ public class EmployeeRoute {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
 
         if (replace) {
+            if (name == null || jobTitle == null)
+                return new ResponseEntity<>("Required parameters missing", HttpStatus.NOT_ACCEPTABLE);
 
+            Designation designation = designationRepository.findByTitle(jobTitle);
+            Employee oldEmployee = employee;
+
+            if (designation == mainDesignation && managerId != -1)
+                return new ResponseEntity<>("Director cannot have a manager", HttpStatus.METHOD_NOT_ALLOWED);
+
+            Employee manager = employeeRepository.findById(managerId);
+
+            if (manager == null)
+                return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
+
+            if (manager.getDesignation().getLevel() >= designation.getLevel())
+                return new ResponseEntity<>("New manager designation level cannot be lower than current employee", HttpStatus.METHOD_NOT_ALLOWED);
+
+            employee = new Employee();
+            employee.setName(name);
+            employee.setDesignation(designation);
+            employee.setManager(manager);
+            employeeRepository.save(employee);
+
+            for (Employee sub : oldEmployee.getSubordinates()) {
+                sub.setManager(employee);
+                employeeRepository.save(sub);
+            }
+
+            employeeRepository.delete(oldEmployee);
         } else {
             if (name != null) employee.setName(name);
+
+            if (jobTitle != null) {
+                Designation designation = designationRepository.findByTitle(jobTitle);
+
+                if (designation == null)
+                    return new ResponseEntity<>("Could not find designation", HttpStatus.NOT_FOUND);
+
+                if (designation == mainDesignation)
+                    return new ResponseEntity<>("Cannot change designation of director", HttpStatus.METHOD_NOT_ALLOWED);
+
+                if (employee.getSubordinates().size() > 0) {
+                    Designation highest = employee.getDesignation();
+
+                    for (Employee sub : employee.getSubordinates()) {
+                        if (sub.getDesignation().getLevel() > highest.getLevel())
+                            highest = sub.getDesignation();
+                    }
+
+                    if (designation.getLevel() >= highest.getLevel())
+                        return new ResponseEntity<>("Employee designation cannot be lower than its subordinates", HttpStatus.METHOD_NOT_ALLOWED);
+                }
+
+                employee.setDesignation(designation);
+            }
+
+            if (managerId != -1) {
+                Employee manager = employeeRepository.findById(managerId);
+
+                if (manager == null)
+                    return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
+
+                if (manager.getDesignation().getLevel() >= employee.getDesignation().getLevel())
+                    return new ResponseEntity<>("New manager designation level cannot be lower than current employee", HttpStatus.METHOD_NOT_ALLOWED);
+
+                employee.setManager(manager);
+            }
+
             employeeRepository.save(employee);
         }
 
