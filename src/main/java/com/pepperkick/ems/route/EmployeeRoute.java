@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,15 @@ public class EmployeeRoute {
 
     @Autowired
     private DesignationRepository designationRepository;
+    private Designation mainDesignation = null;
 
-    private  final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
+    private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
+
+    @PostConstruct
+    public void init() {
+        List<Designation> designations = designationRepository.findByLevel(1);
+        if (designations.size() == 1) mainDesignation = designations.get(0);
+    }
 
     @RequestMapping(method= RequestMethod.GET, produces = "application/json")
     public List<Employee> get() {
@@ -45,19 +53,27 @@ public class EmployeeRoute {
         Integer managerId = Integer.valueOf("" + payload.get("managerId"));
 
         if (name.compareTo("") == 0) {
-            return new ResponseEntity<String>("Name cannot be empty", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Name cannot be empty", HttpStatus.NOT_FOUND);
         }
 
         Designation designation = designationRepository.findByTitle(job);
         if (designation == null){
-            return new ResponseEntity<String>("Designation not found", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Designation not found", HttpStatus.NOT_FOUND);
+        } else if (designation.getLevel() == 1) {
+            if (mainDesignation == null)
+                return new ResponseEntity<>("Unable to verify if a director is present at this time", HttpStatus.METHOD_NOT_ALLOWED);
+
+            List<Employee> employees = employeeRepository.findEmployeeByDesignation(mainDesignation);
+
+            if (employees.size() != 0)
+                return new ResponseEntity<>("Only one director can be present at one time", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         Optional<Employee> manager = employeeRepository.findById(managerId);
         if (!manager.isPresent()) {
-            return new ResponseEntity<String>("Manager not found", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
         } else if (manager.get().getDesignation().getLevel() >= designation.getLevel()) {
-            return new ResponseEntity<String>("Manager cannot be designated lower or equal level to subordinate", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Manager cannot be designated lower or equal level to subordinate", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         Employee newEmployee = new Employee();
