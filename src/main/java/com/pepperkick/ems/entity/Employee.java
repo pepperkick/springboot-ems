@@ -103,11 +103,9 @@ public class Employee {
     }
 
     public SortedSet<Employee> getColleagues() {
-        try {
-            assert manager != null;
+        if (manager != null)
             return manager.getSubordinates(this);
-        } catch (NullPointerException e) {
-            return null;
-        }
+
+        return null;
     }
 }
