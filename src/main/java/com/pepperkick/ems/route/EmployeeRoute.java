@@ -51,6 +51,13 @@ public class EmployeeRoute {
 
     @RequestMapping(method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity post(@RequestBody Map<String, Object> payload) {
+        if (payload.get("name") == null)
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        if (payload.get("jobTitle") == null)
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        if (payload.get("managerId") == null)
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+
         String name = (String) payload.get("name");
         String jobTitle = (String) payload.get("jobTitle");
         int managerId = Integer.parseInt("" + payload.get("managerId"));
@@ -85,7 +92,7 @@ public class EmployeeRoute {
         newEmployee.setDesignation(designation);
         employeeRepository.save(newEmployee);
 
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity<>(newEmployee, HttpStatus.OK);
     }
 
     @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
@@ -152,6 +159,7 @@ public class EmployeeRoute {
             }
 
             employeeRepository.delete(oldEmployee);
+            return new ResponseEntity<>(employee, HttpStatus.OK);
         } else {
             if (name != null) employee.setName(name);
 
@@ -192,9 +200,8 @@ public class EmployeeRoute {
             }
 
             employeeRepository.save(employee);
+            return new ResponseEntity<>(employee, HttpStatus.OK);
         }
-
-        return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/text")
@@ -222,6 +229,6 @@ public class EmployeeRoute {
 
         employeeRepository.delete(employee);
 
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 }
