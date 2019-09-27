@@ -51,6 +51,8 @@ public class EmployeeRoute {
 
     @RequestMapping(method = RequestMethod.POST, produces = "application/json")
     public ResponseEntity post(@RequestBody Map<String, Object> payload) {
+        int managerId = -1;
+
         if (payload.get("name") == null)
             return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
         if (payload.get("jobTitle") == null)
@@ -60,7 +62,9 @@ public class EmployeeRoute {
 
         String name = (String) payload.get("name");
         String jobTitle = (String) payload.get("jobTitle");
-        int managerId = Integer.parseInt("" + payload.get("managerId"));
+
+        if (payload.get("managerId") != null)
+            managerId = Integer.parseInt("" + payload.get("managerId"));
 
         if (name.compareTo("") == 0) {
             return new ResponseEntity<>("Name cannot be empty", HttpStatus.NOT_FOUND);
@@ -77,6 +81,11 @@ public class EmployeeRoute {
 
             if (employees.size() != 0)
                 return new ResponseEntity<>("Only one director can be present at one time", HttpStatus.METHOD_NOT_ALLOWED);
+        }
+
+        if (managerId == -1) {
+            if (designation != mainDesignation)
+                return new ResponseEntity<>("Employee needs to be main to not have manager", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         Employee manager = employeeRepository.findById(managerId);
