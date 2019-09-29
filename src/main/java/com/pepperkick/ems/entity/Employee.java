@@ -3,18 +3,18 @@ package com.pepperkick.ems.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.pepperkick.ems.util.SortEmployees;
 import org.hibernate.annotations.*;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.Comparator;
 import java.util.SortedSet;
 
 @Entity
 @Table(name = "EMPLOYEE")
-public class Employee {
+public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
@@ -36,14 +36,14 @@ public class Employee {
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
-    @SortComparator(SortEmployees.class)
+    @SortComparator(Employee.class)
     private SortedSet<Employee> colleagues;
 
     @OneToMany
     @JoinColumn(name = "MANAGER")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
-    @SortComparator(SortEmployees.class)
+    @SortComparator(Employee.class)
     private SortedSet<Employee> subordinates;
 
     @OneToOne
@@ -107,5 +107,26 @@ public class Employee {
             return manager.getSubordinates(this);
 
         return null;
+    }
+
+    @Override
+    public int compareTo(Employee o) {
+        return this.compare(this, o);
+    }
+
+    @Override
+    public int compare(Employee o1, Employee o2) {
+        int levelDiff = o1.getDesignation().getLevel() - o2.getDesignation().getLevel();
+        if (levelDiff == 0) {
+            int nameDiff = o1.getName().compareTo(o2.getName());
+            if (nameDiff == 0) {
+                int idDiff = o1.getId() - o2.getId();
+                return Integer.compare(idDiff, 0);
+            } else {
+                return nameDiff > 0 ? 1 : -1;
+            }
+        } else {
+            return levelDiff > 0 ? 1 : -1;
+        }
     }
 }
