@@ -1,17 +1,16 @@
 package com.pepperkick.ems.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Comparator;
 
 @Entity
 @Table(name = "DESIGNATION")
-public class Designation {
+public class Designation implements Comparable<Designation> {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
-    private int id;
+    private Integer id;
 
     @NotNull
     @Column(name = "TITLE")
@@ -19,13 +18,13 @@ public class Designation {
 
     @NotNull
     @Column(name = "LEVEL")
-    private int level;
+    private float level;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -37,11 +36,19 @@ public class Designation {
         this.title = title;
     }
 
-    public int getLevel() {
+    public float getLevel() {
         return level;
     }
 
-    public void setLevel(int level) {
+    public void setLevel(float level) {
         this.level = level;
+    }
+
+    @Override
+    public int compareTo(Designation o) {
+        if (this.getLevel() == o.getLevel() && this.getTitle().compareTo(o.getTitle()) == 0)
+            return 0;
+
+        return -1;
     }
 }

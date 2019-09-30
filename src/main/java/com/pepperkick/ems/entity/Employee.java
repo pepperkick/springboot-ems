@@ -116,7 +116,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
 
     @Override
     public int compare(Employee o1, Employee o2) {
-        int levelDiff = o1.getDesignation().getLevel() - o2.getDesignation().getLevel();
+        float levelDiff = o1.getDesignation().getLevel() - o2.getDesignation().getLevel();
         if (levelDiff == 0) {
             int nameDiff = o1.getName().compareTo(o2.getName());
             if (nameDiff == 0) {

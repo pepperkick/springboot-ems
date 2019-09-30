@@ -77,21 +77,25 @@ public class EmployeeRoute {
         }
 
         if (managerId == -1) {
-            if (designation != mainDesignation)
+            if (designation.compareTo(mainDesignation) != 0)
                 return new ResponseEntity<>("Employee needs to be main to not have manager", HttpStatus.METHOD_NOT_ALLOWED);
-        }
-
-        Employee manager = employeeRepository.findById(managerId);
-        if (manager == null) {
-            return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
-        } else if (manager.getDesignation().getLevel() >= designation.getLevel()) {
-            return new ResponseEntity<>("Manager cannot be designated lower or equal level to subordinate", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         Employee newEmployee = new Employee();
         newEmployee.setName(name);
-        newEmployee.setManager(manager);
         newEmployee.setDesignation(designation);
+
+        if (managerId != - 1) {
+            Employee manager = employeeRepository.findById(managerId);
+            if (manager == null) {
+                return new ResponseEntity<>("Manager not found", HttpStatus.NOT_FOUND);
+            } else if (manager.getDesignation().getLevel() >= designation.getLevel()) {
+                return new ResponseEntity<>("Manager cannot be designated lower or equal level to subordinate", HttpStatus.METHOD_NOT_ALLOWED);
+            }
+
+            newEmployee.setManager(manager);
+        }
+
         employeeRepository.save(newEmployee);
 
         return new ResponseEntity<>(newEmployee, HttpStatus.OK);
@@ -104,10 +108,10 @@ public class EmployeeRoute {
 
         Employee employee = employeeRepository.findById(id);
 
-        if (employee != null)
-            return new ResponseEntity<Object>(employee, HttpStatus.OK);
+        if (employee == null)
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<Object>(employee, HttpStatus.OK);
     }
 
     @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
