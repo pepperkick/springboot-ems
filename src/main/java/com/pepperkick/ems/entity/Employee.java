@@ -34,14 +34,14 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     private Employee manager;
 
     @Transient
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @SortComparator(Employee.class)
     private SortedSet<Employee> colleagues;
 
     @OneToMany
     @JoinColumn(name = "MANAGER")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @SortComparator(Employee.class)
     private SortedSet<Employee> subordinates;
