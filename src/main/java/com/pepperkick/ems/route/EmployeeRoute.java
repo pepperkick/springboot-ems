@@ -37,15 +37,8 @@ public class EmployeeRoute {
 
     @RequestMapping(method= RequestMethod.GET, produces = "application/json")
     public List<Employee> get() {
-        Iterable<Employee> employee = employeeRepository.findAll();
-        List<Employee> employees = new ArrayList<>();
-
-        for (Employee e : employee) {
-            employees.add(e);
-        }
-
+        List<Employee> employees = employeeRepository.findAll();
         employees.sort(null);
-
         return employees;
     }
 
