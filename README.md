@@ -78,8 +78,7 @@ Response
         "name": "Thor",
         "jobTitle": "Director"      
     }   
-  } 
-  ...
+  }
 ]
 ```
 
@@ -92,7 +91,7 @@ Body
 {
   "name": "String Required - Employee Name",
   "jobTitle": "String Required - Employee Designation",
-  "managerId": "Integer Optional - Manager Employee ID, Required if current employee is not Director",
+  "managerId": "Integer Optional - Manager Employee ID, Required if current employee is not Director"
 }
 ```
 
@@ -150,11 +149,9 @@ GET /employee/2
 Response
 ```json
 {
-  "employee": { 
-    "id": 2,
-    "name": "IronMan",
-    "jobTitle": "Manager",
-  },
+  "id": 2,
+  "name": "IronMan",
+  "jobTitle": "Manager",
   "manager": {
     "id": 1,
     "name": "Thor",
@@ -257,6 +254,102 @@ Delete employee by ID
 Request
 ```
 DELETE /employee/10
+```
+
+Response
+```
+OK
+```
+
+### GET /designation
+
+Get all designations
+
+Request
+```
+GET /designation
+```
+
+Response
+```json
+[
+    {
+        "id": 6,
+        "title": "Director",
+        "level": 1.0
+    },
+    {
+        "id": 8,
+        "title": "Manager",
+        "level": 2.0
+    },
+    {
+        "id": 15,
+        "title": "Lead",
+        "level": 3.0
+    },
+    {
+        "id": 16,
+        "title": "Developer",
+        "level": 4.0
+    },
+    {
+        "id": 17,
+        "title": "DevOps",
+        "level": 4.0
+    },
+    {
+        "id": 20,
+        "title": "QA",
+        "level": 4.0
+    },
+    {
+        "id": 21,
+        "title": "Intern",
+        "level": 5.0
+    }
+]
+```
+
+### POST /designation
+
+Add new designation
+
+Body
+```json
+{
+  "name": "String Required - Designation Name",
+  "higher": "Number Optional - Designation ID Higher to new Designation",
+  "equals": "Boolean Optional - Set level equal to higher designation"
+}
+```
+
+Request
+```
+POST /designation
+body: {
+    "name": "DBMS",
+    "higher": 20,
+    "equals": true
+}
+```
+
+Response
+```json
+{
+  "id": 22,
+  "name": "DBMS",
+  "level": 4.0
+}
+```
+
+### DELETE /designation/${id}
+
+Delete designation by ID
+
+Request
+```
+DELETE /designation/22
 ```
 
 Response
