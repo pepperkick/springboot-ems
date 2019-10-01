@@ -18,4 +18,3 @@ RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 COPY --from=builder /build/target/*.jar app.jar
 ENTRYPOINT exec java $JAVA_OPTS -jar app.jar $0 $@
-
