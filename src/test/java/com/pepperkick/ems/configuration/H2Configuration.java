@@ -9,6 +9,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "com.pepperkick.ems.repository")
 @PropertySource(value = "application.properties")
 @EnableTransactionManagement
-public class H2Configuration {
-
-}
+public class H2Configuration { }
