@@ -16,7 +16,7 @@ import java.util.SortedSet;
 @Table(name = "EMPLOYEE")
 public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
     private Integer id;
 

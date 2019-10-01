@@ -16,7 +16,7 @@ import java.util.*;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/designation")
+@RequestMapping(value = "/api/v1/designations")
 public class DesignationRoute {
     @Autowired
     private EmployeeRepository employeeRepository;

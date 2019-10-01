@@ -26,6 +26,8 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
     @Autowired
     private MockMvc mockMvc;
 
+    private String path = "/api/v1/designations";
+
     @Test
     public void isRouteRunning() throws Exception {
         assertThat(designationRoute).isNotNull();
@@ -34,7 +36,7 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
     @Test
     public void shouldPingApi() throws Exception {
         mockMvc.
-            perform(get("/designation").accept(MediaType.APPLICATION_JSON)).
+            perform(get(path).accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(content().contentTypeCompatibleWith("application/json")).
@@ -49,7 +51,7 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
         body.put("equals", true);
 
         mockMvc.
-            perform(post("/designation").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk());
     }

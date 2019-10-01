@@ -2,7 +2,6 @@ package com.pepperkick.ems.entity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Comparator;
 
 @Entity
 @Table(name = "DESIGNATION")

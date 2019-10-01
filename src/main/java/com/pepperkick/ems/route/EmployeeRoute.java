@@ -15,7 +15,7 @@ import java.util.*;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/employee")
+@RequestMapping(value = "/api/v1/employees")
 public class EmployeeRoute {
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -42,7 +42,7 @@ public class EmployeeRoute {
         return employees;
     }
 
-    @RequestMapping(method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public ResponseEntity post(@RequestBody Map<String, Object> payload) {
         int managerId = -1;
 
@@ -64,7 +64,7 @@ public class EmployeeRoute {
         }
 
         Designation designation = designationRepository.findByTitle(jobTitle);
-        if (designation == null){
+        if (designation == null) {
             return new ResponseEntity<>("Designation not found", HttpStatus.NOT_FOUND);
         } else if (designation.getLevel() == 1) {
             if (mainDesignation == null)

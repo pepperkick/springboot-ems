@@ -27,6 +27,8 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Autowired
     private MockMvc mockMvc;
 
+    private String path = "/api/v1/employees";
+
     @Test
     public void isRouteRunning() throws Exception {
         assertThat(employeeRoute).isNotNull();
@@ -35,7 +37,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldPingApi() throws Exception {
         mockMvc.
-            perform(get("/employee").accept(MediaType.APPLICATION_JSON)).
+            perform(get(path).accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(content().contentTypeCompatibleWith("application/json")).
@@ -45,7 +47,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldGetDirector() throws Exception {
         mockMvc.
-            perform(get("/employee/1").accept(MediaType.APPLICATION_JSON)).
+            perform(get(path + "/1").accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(content().contentTypeCompatibleWith("application/json")).
             andExpect(jsonPath("$.id").value(1)).
@@ -60,7 +62,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 1);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(jsonPath("$.name").value(body.get("name")));
@@ -73,7 +75,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 1);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isNotAcceptable());
     }
@@ -86,7 +88,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 3);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isMethodNotAllowed()).
             andExpect(content().string(containsString("Manager cannot be designated lower or equal level to subordinate")));
@@ -100,7 +102,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 1);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isMethodNotAllowed()).
             andExpect(content().string(containsString("Only one director can be present at one time")));
@@ -114,7 +116,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 1);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isNotFound()).
             andExpect(content().string(containsString("Designation not found")));
@@ -128,7 +130,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 100);
 
         mockMvc.
-            perform(post("/employee").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isNotFound()).
             andExpect(content().string(containsString("Manager not found")));
@@ -137,7 +139,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldDeleteEmployee() throws Exception {
         mockMvc.
-            perform(delete("/employee/10")).
+            perform(delete(path + "/10")).
             andDo(print()).
             andExpect(status().isOk());
     }
@@ -145,11 +147,11 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldDeleteEmployeeAndUpdateSubordinates() throws Exception {
         mockMvc.
-            perform(delete("/employee/2")).
+            perform(delete(path + "/2")).
             andExpect(status().isOk());
 
         mockMvc.
-            perform(get("/employee/5")).
+            perform(get(path + "/5")).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(jsonPath("$.manager.id").value(1));
@@ -158,7 +160,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToDeleteEmployeeDueToIdNotFound() throws Exception {
         mockMvc.
-            perform(delete("/employee/100")).
+            perform(delete(path + "/100")).
             andDo(print()).
             andExpect(status().isNotFound());
     }
@@ -166,7 +168,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToDeleteDirector() throws Exception {
         mockMvc.
-            perform(delete("/employee/1")).
+            perform(delete(path + "/1")).
             andDo(print()).
             andExpect(status().isMethodNotAllowed());
     }
@@ -186,7 +188,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("name", "Nick Fury");
 
         mockMvc.
-            perform(put("/employee/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(put(path + "/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(jsonPath("$.name").value(body.get("name")));
@@ -198,7 +200,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("managerId", 2);
 
         mockMvc.
-            perform(put("/employee/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(put(path + "/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isMethodNotAllowed());
     }
@@ -210,7 +212,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("jobTitle", "Director");
 
         mockMvc.
-            perform(put("/employee/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            perform(put(path + "/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(jsonPath("$.name").value(body.get("name")));

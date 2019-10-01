@@ -13,6 +13,7 @@ import java.util.TreeSet;
 public class DesignationService {
     private final DesignationRepository designationRepository;
 
+    @Autowired
     public DesignationService(DesignationRepository designationRepository) {
         this.designationRepository = designationRepository;
     }
