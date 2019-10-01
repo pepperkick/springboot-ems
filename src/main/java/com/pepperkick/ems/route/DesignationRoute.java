@@ -4,6 +4,7 @@ import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
+import com.pepperkick.ems.service.DesignationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class DesignationRoute {
 
     @Autowired
     private DesignationRepository designationRepository;
+
+    @Autowired
+    private DesignationService designationService;
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
 
@@ -71,35 +75,7 @@ public class DesignationRoute {
                 if (equals)
                     mewDesignation.setLevel(higherDesignation.getLevel());
                 else {
-                    SortedSet<Float> levels = new TreeSet<>();
-                    List<Designation> designations = designationRepository.findAll();
-
-                    for (Designation designation : designations) {
-                        levels.add(designation.getLevel());
-                    }
-
-                    int index = 0;
-                    for (Float level : levels) {
-                        if (level == higherDesignation.getLevel()) {
-                            break;
-                        }
-                        index++;
-                    }
-
-                    Float[] floats = new Float[levels.size()];
-
-                    int i = 0;
-                    for (Float fl : levels) {
-                        floats[i++] = fl;
-                    }
-
-                    float high = 0, low = floats[index];
-                    if (index == floats.length - 1) {
-                        mewDesignation.setLevel(low + 1);
-                    } else {
-                        high = floats[index + 1];
-                        mewDesignation.setLevel((low + high) / 2);
-                    }
+                    mewDesignation.setLevel(designationService.GetNewDesignationLevel(higherDesignation));
                 }
             }
         }
