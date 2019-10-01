@@ -11,8 +11,11 @@ import java.util.TreeSet;
 
 @Service
 public class DesignationService {
-    @Autowired
-    private DesignationRepository designationRepository;
+    private final DesignationRepository designationRepository;
+
+    public DesignationService(DesignationRepository designationRepository) {
+        this.designationRepository = designationRepository;
+    }
 
     public float GetNewDesignationLevel(Designation higherDesignation) {
         SortedSet<Float> levels = new TreeSet<>();
