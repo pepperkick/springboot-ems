@@ -133,7 +133,7 @@ public class EmployeeRoute {
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("No employee found with the given ID", HttpStatus.NOT_FOUND);
 
         if (replace) {
             if (name == null || jobTitle == null)
@@ -213,16 +213,17 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/text")
     public ResponseEntity delete(@PathVariable int id) {
         if (id < 0)
-            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>("ID cannot be negative",HttpStatus.NOT_ACCEPTABLE);
 
         Employee employee = employeeRepository.findById(id);;
 
         if (employee == null)
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("No employee found with the given ID", HttpStatus.NOT_FOUND);
 
         if (employee.getDesignation().getLevel() == 1) {
+            System.out.println(employee.getSubordinates().size());
             if (!employee.getSubordinates().isEmpty())
-                return new ResponseEntity(HttpStatus.METHOD_NOT_ALLOWED);
+                return new ResponseEntity<>("Subordinates list is not empty", HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         if (!employee.getSubordinates().isEmpty()) {

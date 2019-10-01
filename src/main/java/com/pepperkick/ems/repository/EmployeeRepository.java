@@ -13,4 +13,5 @@ public interface EmployeeRepository extends CrudRepository<Employee, Integer> {
     Employee findById(int id);
     List<Employee> findAll();
     List<Employee> findEmployeeByDesignation(Designation designation);
+    void deleteById(int id);
 }
