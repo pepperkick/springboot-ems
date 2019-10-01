@@ -6,7 +6,7 @@ A Spring Boot project for Employee Management System
 
 #### Designation
 - id: Integer (Primary Key)
-- level: Integer
+- level: Float
 - title: String
 
 #### Employee
