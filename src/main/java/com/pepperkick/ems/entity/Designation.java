@@ -11,11 +11,9 @@ public class Designation implements Comparable<Designation> {
     @Column(name = "ID")
     private Integer id;
 
-    @NotNull
-    @Column(name = "TITLE")
+    @Column(name = "TITLE", unique = true)
     private String title;
 
-    @NotNull
     @Column(name = "LEVEL")
     private float level;
 

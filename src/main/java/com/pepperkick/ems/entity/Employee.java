@@ -20,15 +20,14 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Column(name = "ID")
     private Integer id;
 
-    @Column(name = "NAME")
+    @Column(name = "NAME", length = 40)
     private String name;
 
     @Transient
     private String jobTitle;
 
-    @Nullable
     @OneToOne
-    @JoinColumn(name = "MANAGER")
+    @JoinColumn(name = "MANAGER", nullable = true)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     private Employee manager;
