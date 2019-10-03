@@ -201,14 +201,16 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             ));
     }
 
-//    TODO: Fix test not working
-//    @Test
-//    public void shouldDeleteDirector() throws Exception {
-//        mockMvc.
-//            perform(delete("/employee/1")).
-//            andDo(print()).
-//            andExpect(status().isOk());
-//    }
+    @Test
+    public void shouldDeleteDirector() throws Exception {
+        for (int i = 2; i < 20; i++)
+            mockMvc.perform(delete(path + "/" + i));
+
+        mockMvc.
+            perform(delete(path +"/1")).
+            andDo(print()).
+            andExpect(status().isOk());
+    }
 
     @Test
     public void shouldUpdateName() throws Exception {
@@ -271,5 +273,17 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             perform(patch(path)).
             andDo(print()).
             andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    public void shouldFailToGetEmployeeList() throws Exception {
+        for (int i = 0; i < 20; i++)
+            mockMvc.perform(delete(path + "/" + i));
+        mockMvc.perform(delete(path + "/1"));
+
+        mockMvc.
+            perform(get(path)).
+            andDo(print()).
+            andExpect(status().isNotFound());
     }
 }
