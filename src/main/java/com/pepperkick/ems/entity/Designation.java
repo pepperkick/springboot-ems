@@ -1,5 +1,7 @@
 package com.pepperkick.ems.entity;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -9,12 +11,15 @@ public class Designation implements Comparable<Designation> {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
+    @ApiModelProperty(value = "Designation's ID")
     private Integer id;
 
     @Column(name = "TITLE", unique = true)
+    @ApiModelProperty(value = "Designation's Title")
     private String title;
 
     @Column(name = "LEVEL")
+    @ApiModelProperty(value = "Designation's Level")
     private float level;
 
     public Integer getId() {

@@ -2,7 +2,6 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.Application;
 import com.pepperkick.ems.configuration.H2Configuration;
-import com.pepperkick.ems.repository.EmployeeRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -55,6 +53,22 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     }
 
     @Test
+    public void shouldFailToGetEmployeeDueToInvalidID() throws Exception {
+        mockMvc.
+            perform(get(path + "/-1").accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldFailToGetEmployeeDueToNotFound() throws Exception {
+        mockMvc.
+            perform(get(path + "/100").accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isNotFound());
+    }
+
+    @Test
     public void shouldAddEmployee() throws Exception {
         JSONObject body = new JSONObject();
         body.put("name", "DrStrange");
@@ -64,7 +78,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isOk()).
+            andExpect(status().isCreated()).
             andExpect(jsonPath("$.name").value(body.get("name")));
     }
 
@@ -77,11 +91,14 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isNotAcceptable());
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                "Employee's name cannot be empty"
+            ));
     }
 
     @Test
-    public void shouldFailToAddEmployeeDueToHigherDesignation9() throws Exception {
+    public void shouldFailToAddEmployeeDueToHigherDesignation() throws Exception {
         JSONObject body = new JSONObject();
         body.put("name", "BlackPanther");
         body.put("jobTitle", "Manager");
@@ -90,8 +107,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isMethodNotAllowed()).
-            andExpect(content().string(containsString("Manager cannot be designated lower or equal level to subordinate")));
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                "Employee's designation cannot be higher or equal to it's manager's designation"
+            ));
     }
 
     @Test
@@ -104,8 +123,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isMethodNotAllowed()).
-            andExpect(content().string(containsString("Only one director can be present at one time")));
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                "Only one director can be present"
+            ));
     }
 
     @Test
@@ -118,8 +139,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isNotFound()).
-            andExpect(content().string(containsString("Designation not found")));
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                "Could not find any designation with the given job title, please make sure the job title matches a designation title"
+            ));
     }
 
     @Test
@@ -132,8 +155,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isNotFound()).
-            andExpect(content().string(containsString("Manager not found")));
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                "No employee found with the supplied manager ID"
+            ));
     }
 
     @Test
@@ -168,9 +193,12 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToDeleteDirector() throws Exception {
         mockMvc.
-            perform(delete(path + "/1")).
+            perform(delete(path + "/1").accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isMethodNotAllowed());
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                    "Cannot delete director when subordinates list is not empty"
+            ));
     }
 
 //    TODO: Fix test not working
@@ -202,7 +230,18 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(put(path + "/1").content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isMethodNotAllowed());
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                    "Employee designation cannot be lower or equal to it's subordinates"
+            ));
+    }
+
+    @Test
+    public void shouldFailToUpdateDueToInvalidID() throws Exception {
+        mockMvc.
+            perform(put(path + "/-1").contentType(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isBadRequest());
     }
 
     @Test
@@ -216,5 +255,21 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isOk()).
             andExpect(jsonPath("$.name").value(body.get("name")));
+    }
+
+    @Test
+    public void shouldFailToPutDueToInvalidDataType() throws Exception {
+        mockMvc.
+            perform(put(path + "/1")).
+            andDo(print()).
+            andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
+    public void shouldFailToPatch() throws Exception {
+        mockMvc.
+            perform(patch(path)).
+            andDo(print()).
+            andExpect(status().isMethodNotAllowed());
     }
 }

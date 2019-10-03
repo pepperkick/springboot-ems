@@ -53,6 +53,6 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isOk());
+            andExpect(status().isCreated());
     }
 }

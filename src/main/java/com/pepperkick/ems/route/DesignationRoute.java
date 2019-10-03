@@ -5,6 +5,8 @@ import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.service.DesignationService;
+import com.pepperkick.ems.util.ResponseHelper;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +31,25 @@ public class DesignationRoute {
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
 
+    @ApiOperation(value = "View the list of designations", response = Designation.class)
     @RequestMapping(method= RequestMethod.GET, produces = "application/json")
-    public List<Designation> get() {
-        return designationRepository.findAllByOrderByLevelAsc();
+    public ResponseEntity get() {
+        List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
+
+        if (designations.size() == 0)
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "No designations found",
+                    HttpStatus.NOT_FOUND
+            );
+
+        return new ResponseEntity<>(designations, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Add a new designation", response = Designation.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successfully created new designation"),
+            @ApiResponse(code = 400, message = "Invalid post body or parameter")
+    })
     @RequestMapping(method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     public ResponseEntity post(@RequestBody Map<String, Object> payload) {
         String name = null;
@@ -48,17 +64,26 @@ public class DesignationRoute {
             equals = Boolean.parseBoolean("" + payload.get("equals"));
 
         if (name == null)
-            return new ResponseEntity<>("Name cannot be empty", HttpStatus.NOT_ACCEPTABLE);
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "Designation's name cannot be empty",
+                    HttpStatus.BAD_REQUEST
+            );
 
         if (higher == -1) {
             List<Designation> designations = designationRepository.findAll();
             if (designations.size() != 0)
-                return new ResponseEntity<>("Designation list is not empty", HttpStatus.NOT_ACCEPTABLE);
+                return ResponseHelper.CreateErrorResponseEntity(
+                        "Higher designation ID is required as the designation list is not empty",
+                        HttpStatus.BAD_REQUEST
+                );
         }
 
         Designation nameDesignation = designationRepository.findByTitle(name);
         if (nameDesignation != null) {
-            return new ResponseEntity<>("Designation with same name already exists", HttpStatus.NOT_ACCEPTABLE);
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "Designation with same name already exists",
+                    HttpStatus.BAD_REQUEST
+            );
         }
 
         Designation mewDesignation = new Designation();
@@ -70,7 +95,10 @@ public class DesignationRoute {
             Designation higherDesignation = designationRepository.findById(higher);
 
             if(higherDesignation == null)
-                return new ResponseEntity<>("Higher designation not found", HttpStatus.NOT_FOUND);
+                return ResponseHelper.CreateErrorResponseEntity(
+                        "No designation found with high designation ID",
+                        HttpStatus.BAD_REQUEST
+                );
             else {
                 if (equals)
                     mewDesignation.setLevel(higherDesignation.getLevel());
@@ -82,24 +110,38 @@ public class DesignationRoute {
 
         designationRepository.save(mewDesignation);
 
-        return new ResponseEntity<>(mewDesignation, HttpStatus.OK);
+        return new ResponseEntity<>(mewDesignation, HttpStatus.CREATED);
     }
 
+    @ApiOperation(value = "Delete a designation", response = Designation.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully deleted designation"),
+            @ApiResponse(code = 404, message = "Designation not found"),
+    })
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity delete(@PathVariable int id) {
+    public ResponseEntity delete(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
         if (id < 0)
-            return new ResponseEntity<>("ID cannot be negative", HttpStatus.NOT_ACCEPTABLE);
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "ID cannot be negative",
+                    HttpStatus.BAD_REQUEST
+            );
 
         Designation designation = designationRepository.findById(id);
         if (designation == null)
-            return new ResponseEntity<>("Designation not found", HttpStatus.NOT_FOUND);
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "No designation found with the supplied ID",
+                    HttpStatus.NOT_FOUND
+            );
 
         List<Employee> employees = employeeRepository.findEmployeeByDesignation(designation);
         if (employees.size() != 0)
-            return new ResponseEntity<>("Employees are present for this designation", HttpStatus.NOT_ACCEPTABLE);
+            return ResponseHelper.CreateErrorResponseEntity(
+                    "Cannot remove a designation while employees are assigned to it",
+                    HttpStatus.BAD_REQUEST
+            );
 
         designationRepository.delete(designation);
 
-        return new ResponseEntity<>("OK", HttpStatus.OK);
+        return new ResponseEntity<>(designation, HttpStatus.OK);
     }
 }
