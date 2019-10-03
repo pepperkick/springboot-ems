@@ -9,8 +9,8 @@ import javax.validation.constraints.NotNull;
 @Table(name = "DESIGNATION")
 public class Designation implements Comparable<Designation> {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ApiModelProperty(value = "Designation's ID")
     private Integer id;
 

@@ -17,8 +17,8 @@ import java.util.SortedSet;
 @Table(name = "EMPLOYEE")
 public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ApiModelProperty(notes = "Employee's ID", position = 1)
     private Integer id;
 
@@ -27,7 +27,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     private String name;
 
     @Transient
-    @ApiModelProperty(notes = "Employee's Job Title", example = "Director", position = 3)
+    @ApiModelProperty(notes = "Employee's Job Title", example = "Director", position = 3, required = true)
     private String jobTitle;
 
     @OneToOne
@@ -117,7 +117,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
 
     @Override
     public int compareTo(Employee o) {
-        return this.compare(this, o);
+        return this.getId() - o.getId();
     }
 
     @Override
