@@ -203,6 +203,24 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             ));
     }
 
+    // Should fail to POST with response code 400 due to large employee's name
+    @Test
+    public void shouldFailToPostNewEmployeeDueToLargeName() throws Exception {
+        JSONObject body = new JSONObject();
+        body.put("name", "Black Panther Black Panther Black Panther Black Panther Black Panther Black Panther Black Panther Black Panther Black Panther Black Panther");
+        body.put("jobTitle", "Manager");
+        body.put("managerId", 1);
+
+        mockMvc.
+            perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                    "Unable to save employee due to constraints error"
+            ));
+    }
+
+
     // Should DELETE with response code 200 and delete the employee
     @Test
     public void shouldDeleteEmployee() throws Exception {
