@@ -5,7 +5,6 @@ import com.pepperkick.ems.configuration.H2Configuration;
 import com.pepperkick.ems.util.MessageHelper;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -32,9 +31,19 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
 
     private String path = "/api/v1/employees";
 
+    // Check if route is running
     @Test
     public void isRouteRunning() throws Exception {
         assertThat(employeeRoute).isNotNull();
+    }
+
+    // Should check if message always use format property is enabled
+    @Test
+    public void shouldHaveMessageAutoFormatAlwaysEnabled() {
+        assert messageHelper != null;
+
+        System.out.println(messageHelper.getMessage("test.always_format_property"));
+        assert messageHelper.getMessage("test.always_format_property").compareTo("'This is a test'") == 0;
     }
 
     // GET /employees
@@ -173,7 +182,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation", body.get("jobTitle"), "Lead")
+                messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation", body.get("jobTitle"), "Lead")
             ));
     }
 
@@ -224,7 +233,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                    "Unable to save employee due to constraints error"
+                messageHelper.getMessage("error.route.employee.db.constraint")
             ));
     }
 
@@ -269,7 +278,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                    "Cannot delete director when subordinates list is not empty"
+                messageHelper.getMessage("error.route.employee.restriction.director.subordinates_not_empty")
             ));
     }
 

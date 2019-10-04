@@ -106,7 +106,7 @@ public class EmployeeRoute {
 
             if (body.getManagerId() != -1)
                 return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.no_manager"),
+                    messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"),
                     HttpStatus.BAD_REQUEST
                 );
         }
@@ -131,7 +131,7 @@ public class EmployeeRoute {
                 );
             else if (manager.getDesignation().getLevel() >= designation.getLevel())
                 return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation",  designation.getTitle(), manager.getDesignation().getTitle()),
+                    messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation",  designation.getTitle(), manager.getDesignation().getTitle()),
                     HttpStatus.BAD_REQUEST
                 );
 
@@ -212,7 +212,7 @@ public class EmployeeRoute {
 
             if (designation.compareTo(mainDesignation) == 0 && body.getManagerId() != -1)
                 return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.no_manager"),
+                    messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"),
                     HttpStatus.BAD_REQUEST
                 );
 
@@ -225,8 +225,8 @@ public class EmployeeRoute {
 
             if (manager != null && manager.getDesignation().getLevel() >= designation.getLevel())
                 return ResponseHelper.createErrorResponseEntity(
-                        messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation", designation.getTitle(), manager.getDesignation().getTitle()),
-                         HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation", designation.getTitle(), manager.getDesignation().getTitle()),
+                     HttpStatus.BAD_REQUEST
                 );
 
             employee = new Employee();
@@ -271,7 +271,7 @@ public class EmployeeRoute {
 
                     if (designation.getLevel() >= highest.getLevel())
                         return ResponseHelper.createErrorResponseEntity(
-                            messageHelper.getMessage("error.route.employee.restriction.subordinate.can_not_have_higher_designation", designation.getTitle()),
+                            messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", designation.getTitle()),
                             HttpStatus.BAD_REQUEST
                         );
                 }
@@ -289,7 +289,7 @@ public class EmployeeRoute {
                     );
                 if (manager.getDesignation().getLevel() >= employee.getDesignation().getLevel())
                     return ResponseHelper.createErrorResponseEntity(
-                        messageHelper.getMessage("error.route.employee.restriction.subordinate.can_not_have_higher_designation", body.getJobTitle()) ,
+                        messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", body.getJobTitle()) ,
                         HttpStatus.BAD_REQUEST
                     );
 

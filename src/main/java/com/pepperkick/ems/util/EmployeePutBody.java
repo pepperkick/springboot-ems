@@ -13,7 +13,7 @@ public class EmployeePutBody {
     private String jobTitle;
 
     @ApiModelProperty(name = "managerId", example = "1", position = 3)
-    private int managerId = 1;
+    private int managerId = -1;
 
     @ApiModelProperty(name = "replace", example = "true", position = 4)
     private boolean replace = false;
