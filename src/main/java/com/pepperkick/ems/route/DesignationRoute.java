@@ -37,7 +37,7 @@ public class DesignationRoute {
         List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
 
         if (designations.size() == 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No designations found",
                     HttpStatus.NOT_FOUND
             );
@@ -64,7 +64,7 @@ public class DesignationRoute {
             equals = Boolean.parseBoolean("" + payload.get("equals"));
 
         if (name == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Designation's name cannot be empty",
                     HttpStatus.BAD_REQUEST
             );
@@ -72,7 +72,7 @@ public class DesignationRoute {
         if (higher == -1) {
             List<Designation> designations = designationRepository.findAll();
             if (designations.size() != 0)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Higher designation ID is required as the designation list is not empty",
                         HttpStatus.BAD_REQUEST
                 );
@@ -80,7 +80,7 @@ public class DesignationRoute {
 
         Designation nameDesignation = designationRepository.findByTitle(name);
         if (nameDesignation != null) {
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Designation with same name already exists",
                     HttpStatus.BAD_REQUEST
             );
@@ -95,7 +95,7 @@ public class DesignationRoute {
             Designation higherDesignation = designationRepository.findById(higher);
 
             if(higherDesignation == null)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "No designation found with high designation ID",
                         HttpStatus.BAD_REQUEST
                 );
@@ -121,21 +121,21 @@ public class DesignationRoute {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity delete(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
         if (id < 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "ID cannot be negative",
                     HttpStatus.BAD_REQUEST
             );
 
         Designation designation = designationRepository.findById(id);
         if (designation == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No designation found with the supplied ID",
                     HttpStatus.NOT_FOUND
             );
 
         List<Employee> employees = employeeRepository.findEmployeeByDesignation(designation);
         if (employees.size() != 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Cannot remove a designation while employees are assigned to it",
                     HttpStatus.BAD_REQUEST
             );

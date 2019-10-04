@@ -12,7 +12,7 @@ public class ResponseHelper {
         return res;
     }
 
-    public static ResponseEntity CreateErrorResponseEntity(String message, HttpStatus status) {
+    public static ResponseEntity createErrorResponseEntity(String message, HttpStatus status) {
         JSONObject res = createErrorResponseJson(message, status);
         return new ResponseEntity<>(res.toMap(), status);
     }

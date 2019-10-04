@@ -9,6 +9,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class EmployeeRoute {
         List<Employee> employees = employeeRepository.findAll();
 
         if (employees.size() == 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No employees found",
                     HttpStatus.NOT_FOUND
             );
@@ -61,17 +62,17 @@ public class EmployeeRoute {
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-    public ResponseEntity post(@NotNull @RequestBody Map<String, Object> payload) {
+    public ResponseEntity post(@NotNull @RequestBody  Map<String, Object> payload) {
         int managerId = -1;
 
         if (payload.get("name") == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Employee's name cannot be empty",
                     HttpStatus.BAD_REQUEST
             );
 
         if (payload.get("jobTitle") == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Employee's job title cannot be empty",
                     HttpStatus.BAD_REQUEST
             );
@@ -83,20 +84,20 @@ public class EmployeeRoute {
             managerId = Integer.parseInt("" + payload.get("managerId"));
 
         if (name.compareTo("") == 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Employee's name cannot be empty",
                     HttpStatus.BAD_REQUEST
             );
 
         Designation designation = designationRepository.findByTitle(jobTitle);
         if (designation == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "Could not find any designation with the given job title, please make sure the job title matches a designation title",
                     HttpStatus.BAD_REQUEST
             );
         else if (designation.getLevel() == 1) {
             if (mainDesignation == null) {
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Unable to verify if a director is present at the moment, please try again later",
                         HttpStatus.BAD_REQUEST
                 );
@@ -105,13 +106,13 @@ public class EmployeeRoute {
             List<Employee> employees = employeeRepository.findEmployeeByDesignation(mainDesignation);
 
             if (employees.size() != 0)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Only one director can be present",
                         HttpStatus.BAD_REQUEST
                 );
 
             if (managerId != -1)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Director cannot have a manager",
                         HttpStatus.BAD_REQUEST
                 );
@@ -119,7 +120,7 @@ public class EmployeeRoute {
 
         if (managerId == -1)
             if (designation.compareTo(mainDesignation) != 0)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Employee's job title needs to be 'director' to not have a manager",
                         HttpStatus.BAD_REQUEST
                 );
@@ -131,12 +132,12 @@ public class EmployeeRoute {
         if (managerId != - 1) {
             Employee manager = employeeRepository.findById(managerId);
             if (manager == null)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "No employee found with the supplied manager ID",
                         HttpStatus.BAD_REQUEST
                 );
             else if (manager.getDesignation().getLevel() >= designation.getLevel())
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Employee's designation cannot be higher or equal to it's manager's designation",
                         HttpStatus.BAD_REQUEST
                 );
@@ -144,7 +145,15 @@ public class EmployeeRoute {
             newEmployee.setManager(manager);
         }
 
-        newEmployee = employeeRepository.save(newEmployee);
+        try {
+            newEmployee = employeeRepository.save(newEmployee);
+        } catch (DataIntegrityViolationException e) {
+            System.out.println(e);
+            return ResponseHelper.createErrorResponseEntity(
+                    "Unable to save employee due to constraints error",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
 
         return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
     }
@@ -157,7 +166,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
     public ResponseEntity get(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         if (id < 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "ID cannot be negative",
                     HttpStatus.BAD_REQUEST
             );
@@ -165,7 +174,7 @@ public class EmployeeRoute {
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No employee found with supplied employee ID",
                     HttpStatus.NOT_FOUND
             );
@@ -185,7 +194,7 @@ public class EmployeeRoute {
             @RequestBody Map<String, Object> payload
     ) {
         if (id < 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "ID cannot be negative",
                     HttpStatus.BAD_REQUEST
             );
@@ -207,20 +216,20 @@ public class EmployeeRoute {
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No employee found with the supplied employee ID",
                     HttpStatus.NOT_FOUND
             );
 
         if (replace) {
             if (name == null)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Employee's name cannot be empty",
                         HttpStatus.BAD_REQUEST
                 );
 
             if (jobTitle == null)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Employee's job title cannot be empty",
                         HttpStatus.BAD_REQUEST
                 );
@@ -229,20 +238,20 @@ public class EmployeeRoute {
             Employee oldEmployee = employee;
 
             if (designation.compareTo(mainDesignation) == 0 && managerId != -1)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Director cannot have a manager",
                         HttpStatus.BAD_REQUEST
                 );
 
             Employee manager = employeeRepository.findById(managerId);
             if (designation.compareTo(mainDesignation) != 0 && manager == null)
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "No employee found with the supplied manager ID",
                         HttpStatus.BAD_REQUEST
                 );
 
             if (manager != null && manager.getDesignation().getLevel() >= designation.getLevel())
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Employee's designation cannot be higher or equal to it's manager's designation",
                          HttpStatus.BAD_REQUEST
                 );
@@ -268,13 +277,13 @@ public class EmployeeRoute {
                 Designation designation = designationRepository.findByTitle(jobTitle);
 
                 if (designation == null)
-                    return ResponseHelper.CreateErrorResponseEntity(
+                    return ResponseHelper.createErrorResponseEntity(
                             "Could not find any designation with the supplied title",
                             HttpStatus.BAD_REQUEST
                     );
 
                 if (designation.compareTo(mainDesignation) == 0)
-                    return ResponseHelper.CreateErrorResponseEntity(
+                    return ResponseHelper.createErrorResponseEntity(
                             "Cannot change designation of director",
                             HttpStatus.BAD_REQUEST
                     );
@@ -288,7 +297,7 @@ public class EmployeeRoute {
                     }
 
                     if (designation.getLevel() >= highest.getLevel())
-                        return ResponseHelper.CreateErrorResponseEntity(
+                        return ResponseHelper.createErrorResponseEntity(
                                 "Employee designation cannot be lower or equal to it's subordinates",
                                 HttpStatus.BAD_REQUEST
                         );
@@ -301,12 +310,12 @@ public class EmployeeRoute {
                 Employee manager = employeeRepository.findById(managerId);
 
                 if (manager == null)
-                    return ResponseHelper.CreateErrorResponseEntity(
+                    return ResponseHelper.createErrorResponseEntity(
                             "No employee found with supplied manager ID",
                             HttpStatus.BAD_REQUEST
                     );
                 if (manager.getDesignation().getLevel() >= employee.getDesignation().getLevel())
-                    return ResponseHelper.CreateErrorResponseEntity(
+                    return ResponseHelper.createErrorResponseEntity(
                             "Employee designation cannot be lower or equal to it's subordinates",
                             HttpStatus.BAD_REQUEST
                     );
@@ -327,7 +336,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity delete(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         if (id < 0)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "ID cannot be negative",
                     HttpStatus.BAD_REQUEST
             );
@@ -335,14 +344,14 @@ public class EmployeeRoute {
         Employee employee = employeeRepository.findById(id);;
 
         if (employee == null)
-            return ResponseHelper.CreateErrorResponseEntity(
+            return ResponseHelper.createErrorResponseEntity(
                     "No employee found with the supplied employee ID",
                     HttpStatus.NOT_FOUND
             );
 
         if (employee.getDesignation().getLevel() == 1) {
             if (!employee.getSubordinates().isEmpty())
-                return ResponseHelper.CreateErrorResponseEntity(
+                return ResponseHelper.createErrorResponseEntity(
                         "Cannot delete director when subordinates list is not empty",
                         HttpStatus.BAD_REQUEST
                 );
