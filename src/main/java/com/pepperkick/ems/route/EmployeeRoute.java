@@ -2,12 +2,11 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
-import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.exception.BadRequestException;
-import com.pepperkick.ems.util.EmployeePostBody;
-import com.pepperkick.ems.util.EmployeePutBody;
+import com.pepperkick.ems.requestbody.EmployeePostBody;
+import com.pepperkick.ems.requestbody.EmployeePutBody;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
 import io.swagger.annotations.*;
@@ -60,7 +59,7 @@ public class EmployeeRoute {
 
         if (employees.size() == 0)
             return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.empty.list"),
+                    messageHelper.getMessage("error.route.employee.notfound.list"),
                     HttpStatus.NOT_FOUND
             );
 

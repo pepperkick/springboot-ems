@@ -2,9 +2,12 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
+import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
+import com.pepperkick.ems.requestbody.DesignationPostBody;
 import com.pepperkick.ems.service.DesignationService;
+import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -23,13 +26,17 @@ public class DesignationRoute {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    @Autowired
-    private DesignationRepository designationRepository;
-
-    @Autowired
-    private DesignationService designationService;
+    private final DesignationRepository designationRepository;
+    private final DesignationService designationService;
+    private final MessageHelper messageHelper;
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
+
+    public DesignationRoute(DesignationService designationService, DesignationRepository designationRepository, MessageHelper messageHelper) {
+        this.designationService = designationService;
+        this.designationRepository = designationRepository;
+        this.messageHelper = messageHelper;
+    }
 
     @ApiOperation(value = "View the list of designations", response = Designation.class)
     @RequestMapping(method= RequestMethod.GET, produces = "application/json")
@@ -38,7 +45,7 @@ public class DesignationRoute {
 
         if (designations.size() == 0)
             return ResponseHelper.createErrorResponseEntity(
-                    "No designations found",
+                    messageHelper.getMessage("error.route.designation.notfound.list"),
                     HttpStatus.NOT_FOUND
             );
 
@@ -51,56 +58,45 @@ public class DesignationRoute {
             @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     @RequestMapping(method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-    public ResponseEntity post(@RequestBody Map<String, Object> payload) {
-        String name = null;
-        int higher = -1;
-        boolean equals = false;
+    public ResponseEntity post(@RequestBody DesignationPostBody body) {
+        try {
+            body.validate(messageHelper);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
-        if (payload.get("name") != null)
-            name = (String) payload.get("name");
-        if (payload.get("higher") != null)
-            higher = Integer.parseInt("" + payload.get("higher"));
-        if (payload.get("equals") != null)
-            equals = Boolean.parseBoolean("" + payload.get("equals"));
-
-        if (name == null)
-            return ResponseHelper.createErrorResponseEntity(
-                    "Designation's name cannot be empty",
-                    HttpStatus.BAD_REQUEST
-            );
-
-        if (higher == -1) {
+        if (body.getHigher() == -1) {
             List<Designation> designations = designationRepository.findAll();
             if (designations.size() != 0)
                 return ResponseHelper.createErrorResponseEntity(
-                        "Higher designation ID is required as the designation list is not empty",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.designation.empty.param.higher"),
+                    HttpStatus.BAD_REQUEST
                 );
         }
 
-        Designation nameDesignation = designationRepository.findByTitle(name);
+        Designation nameDesignation = designationRepository.findByTitle(body.getName());
         if (nameDesignation != null) {
             return ResponseHelper.createErrorResponseEntity(
-                    "Designation with same name already exists",
-                    HttpStatus.BAD_REQUEST
+                messageHelper.getMessage("error.route.designation.restriction.same.name", body.getName()),
+                HttpStatus.BAD_REQUEST
             );
         }
 
         Designation mewDesignation = new Designation();
-        mewDesignation.setTitle(name);
+        mewDesignation.setTitle(body.getName());
 
-        if (higher == -1)
+        if (body.getHigher() == -1)
             mewDesignation.setLevel(1);
         else {
-            Designation higherDesignation = designationRepository.findById(higher);
+            Designation higherDesignation = designationRepository.findById(body.getHigher());
 
             if(higherDesignation == null)
                 return ResponseHelper.createErrorResponseEntity(
-                        "No designation found with high designation ID",
+                        messageHelper.getMessage("error.route.designation.notfound.higher", body.getHigher()),
                         HttpStatus.BAD_REQUEST
                 );
             else {
-                if (equals)
+                if (body.isEquals())
                     mewDesignation.setLevel(higherDesignation.getLevel());
                 else {
                     mewDesignation.setLevel(designationService.getNewDesignationLevel(higherDesignation));

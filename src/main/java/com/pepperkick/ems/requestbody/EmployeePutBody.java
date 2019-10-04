@@ -1,6 +1,7 @@
-package com.pepperkick.ems.util;
+package com.pepperkick.ems.requestbody;
 
 import com.pepperkick.ems.exception.BadRequestException;
+import com.pepperkick.ems.util.MessageHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
