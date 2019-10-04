@@ -2,8 +2,10 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.Application;
 import com.pepperkick.ems.configuration.H2Configuration;
+import com.pepperkick.ems.util.MessageHelper;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -24,6 +26,9 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private MessageHelper messageHelper;
 
     private String path = "/api/v1/employees";
 
@@ -75,7 +80,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(get(path + "/-1").accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isBadRequest());
+            andExpect(status().isBadRequest()).
+            andExpect(jsonPath("$.message").value(
+                    messageHelper.getMessage("error.route.employee.invalid.id", -1)
+            ));
     }
 
     // Should fail with response code 404 due to employee not found with id
@@ -115,7 +123,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "Employee's name cannot be empty"
+                    messageHelper.getMessage("error.route.employee.empty.param.name")
             ));
     }
 
@@ -131,7 +139,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "Employee's job title cannot be empty"
+                messageHelper.getMessage("error.route.employee.empty.param.designation")
             ));
     }
 
@@ -148,7 +156,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                    "Could not find any designation with the given job title, please make sure the job title matches a designation title"
+                messageHelper.getMessage("error.route.employee.notfound.designation", body.get("jobTitle"))
             ));
     }
 
@@ -165,7 +173,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "Employee's designation cannot be higher or equal to it's manager's designation"
+                messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation", body.get("jobTitle"), "Lead")
             ));
     }
 
@@ -199,7 +207,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "No employee found with the supplied manager ID"
+                messageHelper.getMessage("error.route.employee.notfound.manager", body.get("managerId"))
             ));
     }
 
@@ -294,6 +302,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToPutAndUpdateManagerOfDirector() throws Exception {
         JSONObject body = new JSONObject();
+        body.put("jobTitle", "Director");
         body.put("managerId", 2);
 
         mockMvc.
@@ -301,7 +310,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "Employee designation cannot be lower or equal to it's subordinates"
+                messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation")
             ));
     }
 

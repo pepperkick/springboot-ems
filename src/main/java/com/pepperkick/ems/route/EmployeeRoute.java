@@ -2,8 +2,13 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
+import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
+import com.pepperkick.ems.exception.BadRequestException;
+import com.pepperkick.ems.util.EmployeePostBody;
+import com.pepperkick.ems.util.EmployeePutBody;
+import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -21,14 +26,22 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/api/v1/employees")
 public class EmployeeRoute {
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final DesignationRepository designationRepository;
+    private final MessageHelper messageHelper;
+    private final RouteValidators routeValidators;
 
-    @Autowired
-    private DesignationRepository designationRepository;
     private Designation mainDesignation = null;
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
+
+    @Autowired
+    public EmployeeRoute(EmployeeRepository employeeRepository, DesignationRepository designationRepository, MessageHelper messageHelper) {
+        this.employeeRepository = employeeRepository;
+        this.designationRepository = designationRepository;
+        this.messageHelper = messageHelper;
+        this.routeValidators = new RouteValidators();
+    }
 
     @PostConstruct
     public void init() {
@@ -47,7 +60,7 @@ public class EmployeeRoute {
 
         if (employees.size() == 0)
             return ResponseHelper.createErrorResponseEntity(
-                    "No employees found",
+                    messageHelper.getMessage("error.route.employee.empty.list"),
                     HttpStatus.NOT_FOUND
             );
 
@@ -62,44 +75,24 @@ public class EmployeeRoute {
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-    public ResponseEntity post(@NotNull @RequestBody  Map<String, Object> payload) {
-        int managerId = -1;
+    public ResponseEntity post(@NotNull @RequestBody EmployeePostBody body) {
+        try {
+            body.validate(messageHelper);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
-        if (payload.get("name") == null)
-            return ResponseHelper.createErrorResponseEntity(
-                    "Employee's name cannot be empty",
-                    HttpStatus.BAD_REQUEST
-            );
-
-        if (payload.get("jobTitle") == null)
-            return ResponseHelper.createErrorResponseEntity(
-                    "Employee's job title cannot be empty",
-                    HttpStatus.BAD_REQUEST
-            );
-
-        String name = (String) payload.get("name");
-        String jobTitle = (String) payload.get("jobTitle");
-
-        if (payload.get("managerId") != null)
-            managerId = Integer.parseInt("" + payload.get("managerId"));
-
-        if (name.compareTo("") == 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    "Employee's name cannot be empty",
-                    HttpStatus.BAD_REQUEST
-            );
-
-        Designation designation = designationRepository.findByTitle(jobTitle);
+        Designation designation = designationRepository.findByTitle(body.getJobTitle());
         if (designation == null)
             return ResponseHelper.createErrorResponseEntity(
-                    "Could not find any designation with the given job title, please make sure the job title matches a designation title",
-                    HttpStatus.BAD_REQUEST
+                messageHelper.getMessage("error.route.employee.notfound.designation", body.getJobTitle()),
+                HttpStatus.BAD_REQUEST
             );
         else if (designation.getLevel() == 1) {
             if (mainDesignation == null) {
                 return ResponseHelper.createErrorResponseEntity(
-                        "Unable to verify if a director is present at the moment, please try again later",
-                        HttpStatus.BAD_REQUEST
+                    "Unable to verify if a director is present at the moment, please try again later",
+                    HttpStatus.BAD_REQUEST
                 );
             }
 
@@ -107,39 +100,39 @@ public class EmployeeRoute {
 
             if (employees.size() != 0)
                 return ResponseHelper.createErrorResponseEntity(
-                        "Only one director can be present",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.director.single"),
+                    HttpStatus.BAD_REQUEST
                 );
 
-            if (managerId != -1)
+            if (body.getManagerId() != -1)
                 return ResponseHelper.createErrorResponseEntity(
-                        "Director cannot have a manager",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.director.no_manager"),
+                    HttpStatus.BAD_REQUEST
                 );
         }
 
-        if (managerId == -1)
+        if (body.getManagerId() == -1)
             if (designation.compareTo(mainDesignation) != 0)
                 return ResponseHelper.createErrorResponseEntity(
-                        "Employee's job title needs to be 'director' to not have a manager",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.director.can_only_have_no_manager"),
+                    HttpStatus.BAD_REQUEST
                 );
 
         Employee newEmployee = new Employee();
-        newEmployee.setName(name);
+        newEmployee.setName(body.getName());
         newEmployee.setDesignation(designation);
 
-        if (managerId != - 1) {
-            Employee manager = employeeRepository.findById(managerId);
+        if (body.getManagerId() != - 1) {
+            Employee manager = employeeRepository.findById(body.getManagerId());
             if (manager == null)
                 return ResponseHelper.createErrorResponseEntity(
-                        "No employee found with the supplied manager ID",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
+                    HttpStatus.BAD_REQUEST
                 );
             else if (manager.getDesignation().getLevel() >= designation.getLevel())
                 return ResponseHelper.createErrorResponseEntity(
-                        "Employee's designation cannot be higher or equal to it's manager's designation",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation",  designation.getTitle(), manager.getDesignation().getTitle()),
+                    HttpStatus.BAD_REQUEST
                 );
 
             newEmployee.setManager(manager);
@@ -148,10 +141,9 @@ public class EmployeeRoute {
         try {
             newEmployee = employeeRepository.save(newEmployee);
         } catch (DataIntegrityViolationException e) {
-            System.out.println(e);
             return ResponseHelper.createErrorResponseEntity(
-                    "Unable to save employee due to constraints error",
-                    HttpStatus.BAD_REQUEST
+                messageHelper.getMessage("error.route.employee.db.constraint"),
+                HttpStatus.BAD_REQUEST
             );
         }
 
@@ -164,19 +156,19 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
-    public ResponseEntity get(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
-        if (id < 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    "ID cannot be negative",
-                    HttpStatus.BAD_REQUEST
-            );
+    public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
+        try {
+            routeValidators.validateId(id);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
             return ResponseHelper.createErrorResponseEntity(
-                    "No employee found with supplied employee ID",
-                    HttpStatus.NOT_FOUND
+                messageHelper.getMessage("error.route.employee.notfound"),
+                HttpStatus.NOT_FOUND
             );
 
         return new ResponseEntity<Object>(employee, HttpStatus.OK);
@@ -189,75 +181,56 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
-    public ResponseEntity put(
+    public ResponseEntity putById(
             @ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id,
-            @RequestBody Map<String, Object> payload
+            @RequestBody EmployeePutBody body
     ) {
-        if (id < 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    "ID cannot be negative",
-                    HttpStatus.BAD_REQUEST
-            );
-
-        String name = null;
-        String jobTitle = null;
-        int managerId = -1;
-        boolean replace = false;
-
-        if (payload.get("name") != null)
-            name = (String) payload.get("name");
-        if (payload.get("jobTitle") != null)
-            jobTitle = (String) payload.get("jobTitle");
-        if (payload.get("managerId") != null)
-            managerId = Integer.parseInt("" + payload.get("managerId"));
-        if (payload.get("replace") !=  null)
-            replace = Boolean.parseBoolean("" + payload.get("replace"));
+        try {
+            routeValidators.validateId(id);
+            body.validate(messageHelper);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
             return ResponseHelper.createErrorResponseEntity(
-                    "No employee found with the supplied employee ID",
-                    HttpStatus.NOT_FOUND
+                messageHelper.getMessage("error.route.employee.notfound", id),
+                HttpStatus.NOT_FOUND
             );
 
-        if (replace) {
-            if (name == null)
-                return ResponseHelper.createErrorResponseEntity(
-                        "Employee's name cannot be empty",
-                        HttpStatus.BAD_REQUEST
-                );
-
-            if (jobTitle == null)
-                return ResponseHelper.createErrorResponseEntity(
-                        "Employee's job title cannot be empty",
-                        HttpStatus.BAD_REQUEST
-                );
-
-            Designation designation = designationRepository.findByTitle(jobTitle);
+        if (body.isReplace()) {
+            Designation designation = designationRepository.findByTitle(body.getJobTitle());
             Employee oldEmployee = employee;
 
-            if (designation.compareTo(mainDesignation) == 0 && managerId != -1)
+            if (designation == null)
                 return ResponseHelper.createErrorResponseEntity(
-                        "Director cannot have a manager",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.notfound.designation", body.getJobTitle()),
+                    HttpStatus.BAD_REQUEST
                 );
 
-            Employee manager = employeeRepository.findById(managerId);
+            if (designation.compareTo(mainDesignation) == 0 && body.getManagerId() != -1)
+                return ResponseHelper.createErrorResponseEntity(
+                    messageHelper.getMessage("error.route.employee.restriction.director.no_manager"),
+                    HttpStatus.BAD_REQUEST
+                );
+
+            Employee manager = employeeRepository.findById(body.getManagerId());
             if (designation.compareTo(mainDesignation) != 0 && manager == null)
                 return ResponseHelper.createErrorResponseEntity(
-                        "No employee found with the supplied manager ID",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
+                    HttpStatus.BAD_REQUEST
                 );
 
             if (manager != null && manager.getDesignation().getLevel() >= designation.getLevel())
                 return ResponseHelper.createErrorResponseEntity(
-                        "Employee's designation cannot be higher or equal to it's manager's designation",
+                        messageHelper.getMessage("error.route.employee.restriction.manager.can_not_have_lower_designation", designation.getTitle(), manager.getDesignation().getTitle()),
                          HttpStatus.BAD_REQUEST
                 );
 
             employee = new Employee();
-            employee.setName(name);
+            employee.setName(body.getName());
             employee.setDesignation(designation);
             employee.setManager(manager);
 
@@ -271,21 +244,21 @@ public class EmployeeRoute {
             employeeRepository.delete(oldEmployee);
             return new ResponseEntity<>(employee, HttpStatus.CREATED);
         } else {
-            if (name != null) employee.setName(name);
+            if (body.getName() != null) employee.setName(body.getName());
 
-            if (jobTitle != null) {
-                Designation designation = designationRepository.findByTitle(jobTitle);
+            if (body.getJobTitle() != null) {
+                Designation designation = designationRepository.findByTitle(body.getJobTitle());
 
                 if (designation == null)
                     return ResponseHelper.createErrorResponseEntity(
-                            "Could not find any designation with the supplied title",
-                            HttpStatus.BAD_REQUEST
+                        messageHelper.getMessage("error.route.employee.notfound.designation", body.getJobTitle()),
+                        HttpStatus.BAD_REQUEST
                     );
 
                 if (designation.compareTo(mainDesignation) == 0)
                     return ResponseHelper.createErrorResponseEntity(
-                            "Cannot change designation of director",
-                            HttpStatus.BAD_REQUEST
+                        messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation"),
+                        HttpStatus.BAD_REQUEST
                     );
 
                 if (employee.getSubordinates().size() > 0) {
@@ -298,26 +271,26 @@ public class EmployeeRoute {
 
                     if (designation.getLevel() >= highest.getLevel())
                         return ResponseHelper.createErrorResponseEntity(
-                                "Employee designation cannot be lower or equal to it's subordinates",
-                                HttpStatus.BAD_REQUEST
+                            messageHelper.getMessage("error.route.employee.restriction.subordinate.can_not_have_higher_designation", designation.getTitle()),
+                            HttpStatus.BAD_REQUEST
                         );
                 }
 
                 employee.setDesignation(designation);
             }
 
-            if (managerId != -1) {
-                Employee manager = employeeRepository.findById(managerId);
+            if (body.getManagerId() != -1) {
+                Employee manager = employeeRepository.findById(body.getManagerId());
 
                 if (manager == null)
                     return ResponseHelper.createErrorResponseEntity(
-                            "No employee found with supplied manager ID",
-                            HttpStatus.BAD_REQUEST
+                        messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
+                        HttpStatus.BAD_REQUEST
                     );
                 if (manager.getDesignation().getLevel() >= employee.getDesignation().getLevel())
                     return ResponseHelper.createErrorResponseEntity(
-                            "Employee designation cannot be lower or equal to it's subordinates",
-                            HttpStatus.BAD_REQUEST
+                        messageHelper.getMessage("error.route.employee.restriction.subordinate.can_not_have_higher_designation", body.getJobTitle()) ,
+                        HttpStatus.BAD_REQUEST
                     );
 
                 employee.setManager(manager);
@@ -334,26 +307,26 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/json")
-    public ResponseEntity delete(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
-        if (id < 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    "ID cannot be negative",
-                    HttpStatus.BAD_REQUEST
-            );
+    public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
+        try {
+            routeValidators.validateId(id);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
         Employee employee = employeeRepository.findById(id);;
 
         if (employee == null)
             return ResponseHelper.createErrorResponseEntity(
-                    "No employee found with the supplied employee ID",
-                    HttpStatus.NOT_FOUND
+                messageHelper.getMessage("error.route.employee.notfound"),
+                HttpStatus.NOT_FOUND
             );
 
         if (employee.getDesignation().getLevel() == 1) {
             if (!employee.getSubordinates().isEmpty())
                 return ResponseHelper.createErrorResponseEntity(
-                        "Cannot delete director when subordinates list is not empty",
-                        HttpStatus.BAD_REQUEST
+                    messageHelper.getMessage("error.route.employee.restriction.director.subordinates_not_empty"),
+                    HttpStatus.BAD_REQUEST
                 );
         }
 
@@ -368,5 +341,14 @@ public class EmployeeRoute {
         employeeRepository.delete(employee);
 
         return new ResponseEntity<>(employee, HttpStatus.OK);
+    }
+
+    public class RouteValidators {
+        void validateId(int id) throws BadRequestException {
+            if (id < 0)
+                throw new BadRequestException(
+                    messageHelper.getMessage("error.route.employee.invalid.id", id)
+                );
+        }
     }
 }

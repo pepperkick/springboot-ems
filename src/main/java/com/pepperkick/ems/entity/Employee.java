@@ -3,6 +3,7 @@ package com.pepperkick.ems.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.*;
 import org.springframework.lang.Nullable;
@@ -10,19 +11,22 @@ import org.springframework.lang.Nullable;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.SortedSet;
 
 @Entity
 @Table(name = "EMPLOYEE")
+@ApiModel
 public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ApiModelProperty(notes = "Employee's ID", position = 1)
+    @ApiModelProperty(notes = "Employee's ID", position = 1, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Integer id;
 
     @Column(name = "NAME", length = 40)
+    @NotNull
     @ApiModelProperty(notes = "Employee's Name", position = 2, required = true)
     private String name;
 
@@ -41,7 +45,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @SortComparator(Employee.class)
-    @ApiModelProperty(notes = "Employee's Colleagues", position = 5)
+    @ApiModelProperty(notes = "Employee's Colleagues", position = 5, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private SortedSet<Employee> colleagues;
 
     @OneToMany
