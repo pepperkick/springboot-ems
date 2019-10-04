@@ -103,7 +103,7 @@ public class DesignationRoute {
                 if (equals)
                     mewDesignation.setLevel(higherDesignation.getLevel());
                 else {
-                    mewDesignation.setLevel(designationService.GetNewDesignationLevel(higherDesignation));
+                    mewDesignation.setLevel(designationService.getNewDesignationLevel(higherDesignation));
                 }
             }
         }

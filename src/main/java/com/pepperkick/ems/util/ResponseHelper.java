@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class ResponseHelper {
-    public static JSONObject CreateErrorResponseJson(String message, HttpStatus status) {
+    public static JSONObject createErrorResponseJson(String message, HttpStatus status) {
         JSONObject res = new JSONObject();
         res.put("message", message);
         res.put("status", status);
@@ -13,7 +13,7 @@ public class ResponseHelper {
     }
 
     public static ResponseEntity CreateErrorResponseEntity(String message, HttpStatus status) {
-        JSONObject res = CreateErrorResponseJson(message, status);
+        JSONObject res = createErrorResponseJson(message, status);
         return new ResponseEntity<>(res.toMap(), status);
     }
 }

@@ -18,7 +18,7 @@ public class DesignationService {
         this.designationRepository = designationRepository;
     }
 
-    public float GetNewDesignationLevel(Designation higherDesignation) {
+    public float getNewDesignationLevel(Designation higherDesignation) {
         SortedSet<Float> levels = new TreeSet<>();
         List<Designation> designations = designationRepository.findAll();
 

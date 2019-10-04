@@ -44,7 +44,7 @@ public class DesignationServiceTests {
     @Test
     public void getNewDesignationLevel() {
         Designation designation = designationRepository.findById(1);
-        float level = designationService.GetNewDesignationLevel(designation);
+        float level = designationService.getNewDesignationLevel(designation);
         assert level == 1.5;
     }
 }

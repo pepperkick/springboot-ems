@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.json.JSONObject;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
@@ -229,21 +228,20 @@ public class EmployeeRoute {
             Designation designation = designationRepository.findByTitle(jobTitle);
             Employee oldEmployee = employee;
 
-            if (designation == mainDesignation && managerId != -1)
+            if (designation.compareTo(mainDesignation) == 0 && managerId != -1)
                 return ResponseHelper.CreateErrorResponseEntity(
                         "Director cannot have a manager",
                         HttpStatus.BAD_REQUEST
                 );
 
             Employee manager = employeeRepository.findById(managerId);
-
-            if (manager == null)
+            if (designation.compareTo(mainDesignation) != 0 && manager == null)
                 return ResponseHelper.CreateErrorResponseEntity(
                         "No employee found with the supplied manager ID",
                         HttpStatus.BAD_REQUEST
                 );
 
-            if (manager.getDesignation().getLevel() >= designation.getLevel())
+            if (manager != null && manager.getDesignation().getLevel() >= designation.getLevel())
                 return ResponseHelper.CreateErrorResponseEntity(
                         "Employee's designation cannot be higher or equal to it's manager's designation",
                          HttpStatus.BAD_REQUEST
@@ -253,6 +251,7 @@ public class EmployeeRoute {
             employee.setName(name);
             employee.setDesignation(designation);
             employee.setManager(manager);
+
             employeeRepository.save(employee);
 
             for (Employee sub : oldEmployee.getSubordinates()) {
@@ -274,7 +273,7 @@ public class EmployeeRoute {
                             HttpStatus.BAD_REQUEST
                     );
 
-                if (designation == mainDesignation)
+                if (designation.compareTo(mainDesignation) == 0)
                     return ResponseHelper.CreateErrorResponseEntity(
                             "Cannot change designation of director",
                             HttpStatus.BAD_REQUEST

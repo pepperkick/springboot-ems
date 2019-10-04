@@ -48,9 +48,6 @@ public class Designation implements Comparable<Designation> {
 
     @Override
     public int compareTo(Designation o) {
-        if (this.getLevel() == o.getLevel() && this.getTitle().compareTo(o.getTitle()) == 0)
-            return 0;
-
-        return -1;
+        return this.getId() - o.getId();
     }
 }
