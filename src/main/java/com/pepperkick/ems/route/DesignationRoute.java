@@ -30,6 +30,7 @@ public class DesignationRoute {
     private final DesignationRepository designationRepository;
     private final DesignationService designationService;
     private final MessageHelper messageHelper;
+    private final ValidatorHelper validatorHelper;
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
 
@@ -37,6 +38,7 @@ public class DesignationRoute {
         this.designationService = designationService;
         this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
+        this.validatorHelper = new ValidatorHelper(messageHelper);
     }
 
     @ApiOperation(value = "View the list of designations", response = Designation.class)
@@ -118,7 +120,7 @@ public class DesignationRoute {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity deleteById(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
         try {
-            ValidatorHelper.validateId(id, messageHelper);
+            validatorHelper.validateId(id);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
