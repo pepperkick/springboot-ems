@@ -28,11 +28,14 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
 
     private String path = "/api/v1/designations";
 
+    // Check if route is running
     @Test
     public void isRouteRunning() throws Exception {
         assertThat(designationRoute).isNotNull();
     }
 
+    // GET /
+    // Should GET with response code 200 and have an array of designations
     @Test
     public void shouldPingApi() throws Exception {
         mockMvc.
@@ -43,6 +46,7 @@ public class DesignationRouteTests extends AbstractTransactionalTestNGSpringCont
             andExpect(jsonPath("$").isArray());
     }
 
+    // Should POST with response code 201 and create a new designations
     @Test
     public void shouldAddDesignation() throws Exception {
         JSONObject body = new JSONObject();

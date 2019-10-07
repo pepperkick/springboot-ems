@@ -9,6 +9,7 @@ import com.pepperkick.ems.requestbody.EmployeePostBody;
 import com.pepperkick.ems.requestbody.EmployeePutBody;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
+import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,6 @@ public class EmployeeRoute {
     private final EmployeeRepository employeeRepository;
     private final DesignationRepository designationRepository;
     private final MessageHelper messageHelper;
-    private final RouteValidators routeValidators;
 
     private Designation mainDesignation = null;
 
@@ -39,7 +39,6 @@ public class EmployeeRoute {
         this.employeeRepository = employeeRepository;
         this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
-        this.routeValidators = new RouteValidators();
     }
 
     @PostConstruct
@@ -157,7 +156,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
-            routeValidators.validateId(id);
+            ValidatorHelper.validateId(id, messageHelper);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -185,7 +184,7 @@ public class EmployeeRoute {
             @RequestBody EmployeePutBody body
     ) {
         try {
-            routeValidators.validateId(id);
+            ValidatorHelper.validateId(id, messageHelper);
             body.validate(messageHelper);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -308,7 +307,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
-            routeValidators.validateId(id);
+            ValidatorHelper.validateId(id, messageHelper);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -340,14 +339,5 @@ public class EmployeeRoute {
         employeeRepository.delete(employee);
 
         return new ResponseEntity<>(employee, HttpStatus.OK);
-    }
-
-    public class RouteValidators {
-        void validateId(int id) throws BadRequestException {
-            if (id < 0)
-                throw new BadRequestException(
-                    messageHelper.getMessage("error.route.employee.invalid.id", id)
-                );
-        }
     }
 }

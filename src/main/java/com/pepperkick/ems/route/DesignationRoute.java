@@ -9,6 +9,7 @@ import com.pepperkick.ems.requestbody.DesignationPostBody;
 import com.pepperkick.ems.service.DesignationService;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
+import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,24 +116,24 @@ public class DesignationRoute {
             @ApiResponse(code = 404, message = "Designation not found"),
     })
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity delete(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
-        if (id < 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    "ID cannot be negative",
-                    HttpStatus.BAD_REQUEST
-            );
+    public ResponseEntity deleteById(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
+        try {
+            ValidatorHelper.validateId(id, messageHelper);
+        } catch (BadRequestException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
 
         Designation designation = designationRepository.findById(id);
         if (designation == null)
             return ResponseHelper.createErrorResponseEntity(
-                    "No designation found with the supplied ID",
+                    messageHelper.getMessage("error.route.designation.notfound"),
                     HttpStatus.NOT_FOUND
             );
 
         List<Employee> employees = employeeRepository.findEmployeeByDesignation(designation);
         if (employees.size() != 0)
             return ResponseHelper.createErrorResponseEntity(
-                    "Cannot remove a designation while employees are assigned to it",
+                    messageHelper.getMessage("error.route.designation.restriction.cannot_have_employee_assigned"),
                     HttpStatus.BAD_REQUEST
             );
 
