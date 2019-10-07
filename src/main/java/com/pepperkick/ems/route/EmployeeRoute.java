@@ -91,7 +91,7 @@ public class EmployeeRoute {
         else if (designation.getLevel() == 1) {
             if (mainDesignation == null) {
                 return ResponseHelper.createErrorResponseEntity(
-                    "Unable to verify if a director is present at the moment, please try again later",
+                    messageHelper.getMessage("error.route.employee.notfound.main_designation"),
                     HttpStatus.BAD_REQUEST
                 );
             }
