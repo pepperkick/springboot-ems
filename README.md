@@ -2,6 +2,16 @@
 
 A Spring Boot project for Employee Management System
 
+## Table of Contents
+- [Database](#database)
+    - [Designation](#designation)
+    - [Employee](#employee)
+- [Example Date](#example-data)
+    - [Designation](#designation)
+    - [Employee](#employee)
+- [API](#api)
+- [Docker](#docker)
+    
 ## Database
 
 #### Designation
@@ -356,3 +366,13 @@ Response
 ```
 OK
 ```
+
+## Docker
+
+### Environment Variables
+
+- **MYSQL_HOST**: MySQL Database Host (Default: mysql)
+- **MYSQL_PORT**: MySQL Database Port (Default: 3306)
+- **MYSQL_USERNAME**: MySQL Username (Default: root)
+- **MYSQL_PASSWORD**: MySQL Password (Default: root)
+- **MYSQL_DATABASE**: MySQL Database name to use (Default: ems)
