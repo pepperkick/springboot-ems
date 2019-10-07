@@ -10,9 +10,10 @@ RUN mvn package
 # Runtime Image
 FROM openjdk:8-jdk-alpine as runtime
 LABEL maintainer="PepperKick"
-EXPOSE 8080
+EXPOSE 8999
 ENV APP_HOME /app
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 COPY --from=builder /build/target/*.jar app.jar
+COPY .env .env
 ENTRYPOINT exec java $JAVA_OPTS -jar app.jar $0 $@
