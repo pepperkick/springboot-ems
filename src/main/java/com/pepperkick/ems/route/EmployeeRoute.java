@@ -75,7 +75,7 @@ public class EmployeeRoute {
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-    public ResponseEntity post(@NotNull @RequestBody EmployeePostBody body) {
+    public ResponseEntity post(@ApiParam(value = "Information of new employee") @NotNull @RequestBody EmployeePostBody body) {
         try {
             body.validate(messageHelper);
         } catch (BadRequestException e) {
@@ -183,7 +183,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
     public ResponseEntity putById(
             @ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id,
-            @RequestBody EmployeePutBody body
+            @ApiParam(value = "Information of employee to update") @RequestBody EmployeePutBody body
     ) {
         try {
             validatorHelper.validateId(id);

@@ -61,7 +61,7 @@ public class DesignationRoute {
             @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     @RequestMapping(method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-    public ResponseEntity post(@RequestBody DesignationPostBody body) {
+    public ResponseEntity post(@ApiParam(value = "Information of new designation") @RequestBody DesignationPostBody body) {
         try {
             body.validate(messageHelper);
         } catch (BadRequestException e) {

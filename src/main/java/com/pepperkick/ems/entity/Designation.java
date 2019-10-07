@@ -11,15 +11,15 @@ public class Designation implements Comparable<Designation> {
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ApiModelProperty(value = "Designation's ID")
+    @ApiModelProperty(value = "Designation's ID", example = "1", position = 1)
     private Integer id;
 
     @Column(name = "TITLE", unique = true)
-    @ApiModelProperty(value = "Designation's Title")
+    @ApiModelProperty(value = "Designation's Title", example = "Director", position = 2)
     private String title;
 
     @Column(name = "LEVEL")
-    @ApiModelProperty(value = "Designation's Level")
+    @ApiModelProperty(value = "Designation's Level", example = "1.0", position = 3)
     private float level;
 
     public Integer getId() {

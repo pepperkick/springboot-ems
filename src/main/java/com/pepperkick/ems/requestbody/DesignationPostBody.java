@@ -7,13 +7,13 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
 public class DesignationPostBody {
-    @ApiModelProperty(name = "name", value = "Name of the designation", required = true)
+    @ApiModelProperty(name = "name", value = "Name of the designation", example = "Senior Manager", required = true, position = 1)
     private String name;
 
-    @ApiModelProperty(name = "higher", value = "ID of the designation that is just higher than new designation")
+    @ApiModelProperty(name = "higher", value = "ID of the designation that is just higher than new designation", example = "1",position = 2)
     private int higher;
 
-    @ApiModelProperty(name = "equals", value = "Set new designation level equal to higher designation level")
+    @ApiModelProperty(name = "equals", value = "Set new designation level equal to higher designation level", example = "false", position = 3)
     private boolean equals;
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {

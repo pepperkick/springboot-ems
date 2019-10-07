@@ -7,16 +7,16 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel
 public class EmployeePutBody {
-    @ApiModelProperty(name = "name", example = "Captain America", position = 1)
+    @ApiModelProperty(name = "name", value = "Name of the employee",example = "Captain America", position = 1)
     private String name;
 
-    @ApiModelProperty(name = "jobTitle", example = "Manager", position = 2)
+    @ApiModelProperty(name = "jobTitle", value = "Designation of the employee", example = "Manager", position = 2)
     private String jobTitle;
 
-    @ApiModelProperty(name = "managerId", example = "1", position = 3)
+    @ApiModelProperty(name = "managerId", value = "Manager ID of the employee", example = "1", position = 3)
     private int managerId = -1;
 
-    @ApiModelProperty(name = "replace", example = "true", position = 4)
+    @ApiModelProperty(name = "replace", value = "Should the employee be replaced with a new employee with the given information", example = "true", position = 4)
     private boolean replace = false;
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {
