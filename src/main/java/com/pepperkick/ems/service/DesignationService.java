@@ -14,6 +14,19 @@ public class DesignationService {
     @Autowired
     public DesignationService(DesignationRepository designationRepository) {
         this.designationRepository = designationRepository;
+
+        List<Designation> designations = designationRepository.findAll();
+        if (designations.size() == 0) {
+            String[] titles = { "Director", "Manager", "Lead", "Developer", "DevOps", "QA", "Intern" };
+            float[] levels = { 1, 2, 3, 4, 4, 4, 5 };
+
+            for (int i = 0; i < titles.length; i++) {
+                Designation designation = new Designation();
+                designation.setTitle(titles[i]);
+                designation.setLevel(levels[i]);
+                designationRepository.save(designation);
+            }
+        }
     }
 
     public float getNewDesignationLevel(Designation higherDesignation) {
