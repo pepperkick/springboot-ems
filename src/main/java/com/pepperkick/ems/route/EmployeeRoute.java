@@ -29,6 +29,7 @@ public class EmployeeRoute {
     private final EmployeeRepository employeeRepository;
     private final DesignationRepository designationRepository;
     private final MessageHelper messageHelper;
+    private final ValidatorHelper validatorHelper;
 
     private Designation mainDesignation = null;
 
@@ -39,6 +40,7 @@ public class EmployeeRoute {
         this.employeeRepository = employeeRepository;
         this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
+        this.validatorHelper = new ValidatorHelper(messageHelper);
     }
 
     @PostConstruct
@@ -156,7 +158,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
-            ValidatorHelper.validateId(id, messageHelper);
+            validatorHelper.validateId(id);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -184,7 +186,7 @@ public class EmployeeRoute {
             @RequestBody EmployeePutBody body
     ) {
         try {
-            ValidatorHelper.validateId(id, messageHelper);
+            validatorHelper.validateId(id);
             body.validate(messageHelper);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -307,7 +309,7 @@ public class EmployeeRoute {
     @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
-            ValidatorHelper.validateId(id, messageHelper);
+            validatorHelper.validateId(id);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
