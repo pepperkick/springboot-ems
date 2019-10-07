@@ -41,18 +41,18 @@ Designation
 
 Employee
 
-| id  | name           | manager | designation   |
-| --- | -------------- | ------- | ------------- |
-| 1   | Thor           | null    | 1 (Director)  |
-| 2   | IronMan        | 1       | 2 (Manager)   |
-| 3   | Hulk           | 1       | 3 (Lead)      |
-| 4   | CaptainAmerica | 1       | 2 (Manager)   |
-| 5   | WarMachine     | 2       | 6 (QA)        |
-| 6   | Vison          | 2       | 5 (DevOps)    |
-| 7   | Falcon         | 4       | 4 (Developer) |
-| 8   | AntMan         | 4       | 3 (Lead)      |
-| 9   | SpiderMan      | 2       | 7 (Intern)    |
-| 10  | BlackWidow     | 3       | 4 (Developer)
+| id  | name            | manager | designation   |
+| --- | --------------- | ------- | ------------- |
+| 1   | Thor            | null    | 1 (Director)  |
+| 2   | Iron Man        | 1       | 2 (Manager)   |
+| 3   | Hulk            | 1       | 3 (Lead)      |
+| 4   | Captain America | 1       | 2 (Manager)   |
+| 5   | WarMachine      | 2       | 6 (QA)        |
+| 6   | Vision          | 2       | 5 (DevOps)    |
+| 7   | Falcon          | 4       | 4 (Developer) |
+| 8   | Ant Man         | 4       | 3 (Lead)      |
+| 9   | Spider Man      | 2       | 7 (Intern)    |
+| 10  | Blac kWidow     | 3       | 4 (Developer)
 
 ## API
 
