@@ -369,6 +369,10 @@ OK
 
 ## Docker
 
+Downloaded from [here](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe)
+
+Version: 2.0.0.3
+
 ### Environment Variables
 
 - **MYSQL_HOST**: MySQL Database Host (Default: mysql)
