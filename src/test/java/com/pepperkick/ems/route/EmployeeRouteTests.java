@@ -233,7 +233,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                messageHelper.getMessage("error.route.employee.db.constraint")
+                messageHelper.getMessage("error.route.employee.param.name.too_long")
             ));
     }
 

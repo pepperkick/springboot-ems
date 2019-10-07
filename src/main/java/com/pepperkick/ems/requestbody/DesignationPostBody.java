@@ -21,6 +21,11 @@ public class DesignationPostBody {
             throw new BadRequestException(
                 messageHelper.getMessage("error.route.designation.empty.param.name")
             );
+
+        if (this.name.length() > 30)
+            throw new BadRequestException(
+                    messageHelper.getMessage("error.route.designation.param.name.too_long")
+            );
     }
 
     public String getName() {

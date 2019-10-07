@@ -26,6 +26,11 @@ public class EmployeePutBody {
                     messageHelper.getMessage("error.route.employee.empty.param.name")
                 );
 
+            if (this.name.length() > 30)
+                throw new BadRequestException(
+                        messageHelper.getMessage("error.route.employee.param.name.too_long")
+                );
+
             if (this.jobTitle == null || this.jobTitle.compareTo("") == 0)
                 throw new BadRequestException(
                     messageHelper.getMessage("error.route.employee.empty.param.designation")
