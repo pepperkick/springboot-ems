@@ -177,7 +177,7 @@ public class EmployeeRoute {
     @ApiOperation(value = "Update or replace an employee", response = Employee.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated the employee"),
-            @ApiResponse(code = 201, message = "Succ    essfully created a new employee and replaced the old employee"),
+            @ApiResponse(code = 201, message = "Successfully created a new employee and replaced the old employee"),
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
