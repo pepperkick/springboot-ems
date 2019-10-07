@@ -1,12 +1,10 @@
 # Builder Image
 FROM maven:3-jdk-8 as builder
-
-# Build
 RUN mkdir -p /build
 WORKDIR /build
 COPY pom.xml /build
-RUN mvn -b  dependency:resolve dependency:resolve-plugins
 COPY src /build/src
+RUN mvn compile
 RUN mvn package
 
 # Runtime Image
