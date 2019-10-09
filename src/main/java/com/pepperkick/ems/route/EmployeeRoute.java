@@ -2,11 +2,13 @@ package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
+import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.requestbody.EmployeePostBody;
 import com.pepperkick.ems.requestbody.EmployeePutBody;
+import com.pepperkick.ems.service.EmployeeService;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
 import com.pepperkick.ems.util.ValidatorHelper;
@@ -26,21 +28,22 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/api/v1/employees")
 public class EmployeeRoute {
+    private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
     private final EmployeeRepository employeeRepository;
     private final DesignationRepository designationRepository;
     private final MessageHelper messageHelper;
     private final ValidatorHelper validatorHelper;
+    private final EmployeeService employeeService;
 
     private Designation mainDesignation = null;
 
-    private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
-
     @Autowired
-    public EmployeeRoute(EmployeeRepository employeeRepository, DesignationRepository designationRepository, MessageHelper messageHelper) {
+    public EmployeeRoute(EmployeeRepository employeeRepository, DesignationRepository designationRepository, MessageHelper messageHelper, EmployeeService employeeService) {
         this.employeeRepository = employeeRepository;
         this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
         this.validatorHelper = new ValidatorHelper(messageHelper);
+        this.employeeService = employeeService;
     }
 
     @PostConstruct
@@ -157,19 +160,16 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
+        Employee employee;
+
         try {
             validatorHelper.validateId(id);
+            employee = employeeService.findById(id, true);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
         }
-
-        Employee employee = employeeRepository.findById(id);
-
-        if (employee == null)
-            return ResponseHelper.createErrorResponseEntity(
-                messageHelper.getMessage("error.route.employee.notfound"),
-                HttpStatus.NOT_FOUND
-            );
 
         return new ResponseEntity<Object>(employee, HttpStatus.OK);
     }
@@ -308,19 +308,16 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
+        Employee employee;
+
         try {
             validatorHelper.validateId(id);
+            employee = employeeService.findById(id, true);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
         }
-
-        Employee employee = employeeRepository.findById(id);;
-
-        if (employee == null)
-            return ResponseHelper.createErrorResponseEntity(
-                messageHelper.getMessage("error.route.employee.notfound"),
-                HttpStatus.NOT_FOUND
-            );
 
         if (employee.getDesignation().getLevel() == 1) {
             if (!employee.getSubordinates().isEmpty())
@@ -332,7 +329,7 @@ public class EmployeeRoute {
 
         if (!employee.getSubordinates().isEmpty()) {
             Employee manager = employee.getManager();
-            employee.getSubordinates().forEach(object    -> {
+            employee.getSubordinates().forEach(object -> {
                 object.setManager(manager);
                 employeeRepository.save(object);
             });
