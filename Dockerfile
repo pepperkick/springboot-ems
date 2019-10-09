@@ -3,5 +3,5 @@ EXPOSE 8080
 ENV APP_HOME /app
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
-COPY /target/*.jar app.jar
-ENTRYPOINT exec java $JAVA_OPTS -jar -Dspring.profiles.active=$PROFILE app.jar $0 $@
+COPY /server/target/*.jar app.jar
+ENTRYPOINT exec java -jar -Dspring.profiles.active=$PROFILE app.jar

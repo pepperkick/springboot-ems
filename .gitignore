@@ -1,8 +1,11 @@
 HELP.md
 target/
+ui/target
+server/target
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**
 !**/src/test/**
+.env
 
 ### STS ###
 .apt_generated
@@ -26,6 +29,11 @@ target/
 /nbdist/
 /.nb-gradle/
 build/
+
+/ui/dist
+/ui/node_modules
+/ui/node
+/server/src/main/resources/static
 
 ### VS Code ###
 .vscode/
