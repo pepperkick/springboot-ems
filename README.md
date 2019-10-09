@@ -375,6 +375,7 @@ Version: 2.0.0.3
 
 ### Environment Variables
 
+- **PROFILE**: Spring Boot profile to run in (Default: development)
 - **MYSQL_HOST**: MySQL Database Host (Default: mysql)
 - **MYSQL_PORT**: MySQL Database Port (Default: 3306)
 - **MYSQL_USERNAME**: MySQL Username (Default: root)
