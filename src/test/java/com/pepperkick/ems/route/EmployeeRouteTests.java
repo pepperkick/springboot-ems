@@ -87,12 +87,21 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToGetEmployeeDueToInvalidID() throws Exception {
         mockMvc.
-            perform(get(path + "/-1").accept(MediaType.APPLICATION_JSON)).
-            andDo(print()).
-            andExpect(status().isBadRequest()).
-            andExpect(jsonPath("$.message").value(
-                    messageHelper.getMessage("error.route.employee.invalid.id", -1)
-            ));
+                perform(get(path + "/-1").accept(MediaType.APPLICATION_JSON)).
+                andDo(print()).
+                andExpect(status().isBadRequest()).
+                andExpect(jsonPath("$.message").value(
+                        messageHelper.getMessage("error.route.employee.invalid.id", -1)
+                ));
+    }
+
+    // Should fail with response code 400 due to not integer type ID
+    @Test
+    public void shouldFailToGetEmployeeDueToInvalidTypeID() throws Exception {
+        mockMvc.
+                perform(get(path + "/1.1").accept(MediaType.APPLICATION_JSON)).
+                andDo(print()).
+                andExpect(status().isBadRequest());
     }
 
     // Should fail with response code 404 due to employee not found with id
