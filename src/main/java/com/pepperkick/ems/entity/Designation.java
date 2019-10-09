@@ -46,6 +46,8 @@ public class Designation implements Comparable<Designation> {
         this.level = level;
     }
 
+    public boolean equalsTo(Designation o) { return compareTo(o) == 0; }
+
     @Override
     public int compareTo(Designation o) {
         return this.getId() - o.getId();

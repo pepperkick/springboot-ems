@@ -91,7 +91,7 @@ public class EmployeeRoute {
                 messageHelper.getMessage("error.route.employee.notfound.designation", body.getJobTitle()),
                 HttpStatus.BAD_REQUEST
             );
-        else if (designation.getLevel() == 1) {
+        else if (designation.equalsTo(mainDesignation)) {
             if (mainDesignation == null) {
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.notfound.main_designation"),
@@ -115,7 +115,7 @@ public class EmployeeRoute {
         }
 
         if (body.getManagerId() == -1)
-            if (designation.compareTo(mainDesignation) != 0)
+            if (!designation.equalsTo(mainDesignation))
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.restriction.director.can_only_have_no_manager"),
                     HttpStatus.BAD_REQUEST
@@ -210,14 +210,14 @@ public class EmployeeRoute {
                     HttpStatus.BAD_REQUEST
                 );
 
-            if (designation.compareTo(mainDesignation) == 0 && body.getManagerId() != -1)
+            if (designation.equalsTo(mainDesignation) && body.getManagerId() != -1)
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"),
                     HttpStatus.BAD_REQUEST
                 );
 
             Employee manager = employeeRepository.findById(body.getManagerId());
-            if (designation.compareTo(mainDesignation) != 0 && manager == null)
+            if (!designation.equalsTo(mainDesignation)&& manager == null)
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
                     HttpStatus.BAD_REQUEST
@@ -255,7 +255,7 @@ public class EmployeeRoute {
                         HttpStatus.BAD_REQUEST
                     );
 
-                if (designation.compareTo(mainDesignation) == 0)
+                if (designation.equalsTo(mainDesignation))
                     return ResponseHelper.createErrorResponseEntity(
                         messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation"),
                         HttpStatus.BAD_REQUEST
@@ -319,7 +319,7 @@ public class EmployeeRoute {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
         }
 
-        if (employee.getDesignation().getLevel() == 1) {
+        if (employee.getDesignation().equalsTo(mainDesignation)) {
             if (!employee.getSubordinates().isEmpty())
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.restriction.director.subordinates_not_empty"),
