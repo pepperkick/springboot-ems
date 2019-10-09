@@ -49,12 +49,12 @@ public class EmployeeRoute {
         if (designations.size() == 1) mainDesignation = designations.get(0);
     }
 
+    @GetMapping(produces = "application/json")
     @ApiOperation(value = "View the list of employees", response = Employee.class)
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Successfully retrieved the list"),
         @ApiResponse(code = 404, message = "No employees found"),
     })
-    @RequestMapping(method= RequestMethod.GET, produces = "application/json")
     public ResponseEntity get() {
         List<Employee> employees = employeeRepository.findAll();
 
@@ -69,12 +69,12 @@ public class EmployeeRoute {
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
+    @PostMapping(consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Add a new employee", response = Employee.class)
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Successfully created new employee", response = Employee.class),
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
-    @RequestMapping(method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
     public ResponseEntity post(@ApiParam(value = "Information of new employee") @NotNull @RequestBody EmployeePostBody body) {
         try {
             body.validate(messageHelper);
@@ -150,12 +150,12 @@ public class EmployeeRoute {
         return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
     }
 
+    @GetMapping(value = "/{id}", produces = "application/json")
     @ApiOperation(value = "Get information of specific employee", response = Employee.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved the employee information"),
             @ApiResponse(code = 404, message = "Employee not found"),
     })
-    @RequestMapping(value= "/{id}", method= RequestMethod.GET, produces = "application/json")
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
             validatorHelper.validateId(id);
@@ -174,13 +174,13 @@ public class EmployeeRoute {
         return new ResponseEntity<Object>(employee, HttpStatus.OK);
     }
 
+    @PutMapping(value = "/{id}", produces = "application/json", consumes = "application/json")
     @ApiOperation(value = "Update or replace an employee", response = Employee.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated the employee"),
             @ApiResponse(code = 201, message = "Successfully created a new employee and replaced the old employee"),
             @ApiResponse(code = 404, message = "Employee not found"),
     })
-    @RequestMapping(value= "/{id}", method= RequestMethod.PUT, produces = "application/json", consumes = "application/json")
     public ResponseEntity putById(
             @ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id,
             @ApiParam(value = "Information of employee to update") @RequestBody EmployeePutBody body
@@ -301,12 +301,12 @@ public class EmployeeRoute {
         }
     }
 
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     @ApiOperation(value = "Delete an employee", response = Employee.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully deleted the employee"),
             @ApiResponse(code = 404, message = "Employee not found"),
     })
-    @RequestMapping(value= "/{id}", method = RequestMethod.DELETE, produces = "application/json")
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         try {
             validatorHelper.validateId(id);

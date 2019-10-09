@@ -24,8 +24,7 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/api/v1/designations")
 public class DesignationRoute {
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
 
     private final DesignationRepository designationRepository;
     private final DesignationService designationService;
@@ -34,15 +33,21 @@ public class DesignationRoute {
 
     private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
 
-    public DesignationRoute(DesignationService designationService, DesignationRepository designationRepository, MessageHelper messageHelper) {
+    @Autowired
+    public DesignationRoute(DesignationService designationService, DesignationRepository designationRepository, MessageHelper messageHelper, EmployeeRepository employeeRepository) {
         this.designationService = designationService;
         this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
+        this.employeeRepository = employeeRepository;
         this.validatorHelper = new ValidatorHelper(messageHelper);
     }
 
+    @GetMapping(produces = "application/json")
     @ApiOperation(value = "View the list of designations", response = Designation.class)
-    @RequestMapping(method= RequestMethod.GET, produces = "application/json")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully retrieved the list"),
+            @ApiResponse(code = 404, message = "No designations found"),
+    })
     public ResponseEntity get() {
         List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
 
@@ -55,12 +60,12 @@ public class DesignationRoute {
         return new ResponseEntity<>(designations, HttpStatus.OK);
     }
 
+    @PostMapping(produces = "application/json", consumes = "application/json")
     @ApiOperation(value = "Add a new designation", response = Designation.class)
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Successfully created new designation"),
             @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
-    @RequestMapping(method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
     public ResponseEntity post(@ApiParam(value = "Information of new designation") @RequestBody DesignationPostBody body) {
         try {
             body.validate(messageHelper);
@@ -112,12 +117,12 @@ public class DesignationRoute {
         return new ResponseEntity<>(mewDesignation, HttpStatus.CREATED);
     }
 
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     @ApiOperation(value = "Delete a designation", response = Designation.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully deleted designation"),
             @ApiResponse(code = 404, message = "Designation not found"),
     })
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity deleteById(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
         try {
             validatorHelper.validateId(id);
