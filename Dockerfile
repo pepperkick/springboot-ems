@@ -1,5 +1,5 @@
 FROM openjdk:8-jdk-alpine as runtime
-EXPOSE 8999
+EXPOSE 8080
 ENV APP_HOME /app
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
