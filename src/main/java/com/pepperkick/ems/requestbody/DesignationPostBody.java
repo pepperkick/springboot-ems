@@ -5,7 +5,7 @@ import com.pepperkick.ems.util.MessageHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel
+@ApiModel(value = "Details to add new designation")
 public class DesignationPostBody {
     @ApiModelProperty(name = "name", value = "Name of the designation", example = "Senior Manager", required = true, position = 1)
     private String name;

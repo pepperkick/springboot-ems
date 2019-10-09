@@ -6,7 +6,7 @@ import com.pepperkick.ems.util.MessageHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel(parent = Employee.class)
+@ApiModel(value = "Details to add new employee")
 public class EmployeePostBody {
     @ApiModelProperty(name = "name", example = "Iron Man", value = "Name of the Employee", required = true, position = 1)
     private String name;

@@ -5,7 +5,7 @@ import com.pepperkick.ems.util.MessageHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel
+@ApiModel(value = "Details to update or replace employee")
 public class EmployeePutBody {
     @ApiModelProperty(name = "name", value = "Name of the employee",example = "Captain America", position = 1)
     private String name;
