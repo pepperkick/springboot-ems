@@ -92,6 +92,25 @@ else
   echo ""
 fi
 
+# Check if employee list is sorted
+newTestCase "Check if employees list is soreted"
+sortedArray=(1 4 2 8 3 10 7 6 5 9)
+failedFlag=0
+for i in {0..9}
+do
+  id=$(echo "$body" | $jq ".[$i].id")
+  if [ "$id" != "${sortedArray[i]}" ]; then
+    printTestCase false
+    echo "List of employees was not printed in sorted order"
+    failedFlag=1
+    break
+  fi
+done
+
+if [ "$failedFlag" == "0" ]; then
+  printTestCase true
+fi
+
 # GET employee by ID
 newTestCase "Perform GET employee by ID operation"
 getByIdOperation 2
@@ -99,11 +118,24 @@ getByIdOperation 2
 id=$(echo "$body" | $jq ".id")
 title=$(echo "$body" | $jq ".name")
 jobTitle=$(echo "$body" | $jq ".jobTitle")
+nestedId=$(echo "$body" | $jq ".employee.id")
+nestedTitle=$(echo "$body" | $jq ".employee.name")
+nestedJobTitle=$(echo "$body" | $jq ".employee.jobTitle")
 manager=$(echo "$body" | $jq ".manager.id")
 suboridnatesSize=$(echo "$body" | $jq ".subordinates | length")
 colleaguesSize=$(echo "$body" | $jq ".colleagues | length")
 
-if [ "$id" == "2" ] && [ "$title" == "\"Iron Man\"" ] && [ "$jobTitle" == "\"Manager\"" ] && [ "$manager" == "1" ]; then
+if [ "$id" == "2" ] || [ "$nestedId" == "2" ]; then
+  flagId=1
+fi
+if [ "$title" == "\"Iron Man\"" ] || [ "$nestedTitle" == "\"Iron Man\"" ]; then
+  flagTitle=1
+fi
+if [ "$jobTitle" == "\"Manager\"" ] || [ "$nestedJobTitle" == "\"Manager\"" ]; then
+  flagJobTitle=1
+fi
+
+if [ "$flagId" == "1" ] && [ "$flagTitle" == "1" ] && [ "$flagJobTitle" == "1" ] && [ "$manager" == "1" ] && [ "$suboridnatesSize" == "3" ] && [ "$colleaguesSize" == "2" ]; then
   printTestCase true
 else
   printTestCase false
@@ -118,6 +150,12 @@ else
   fi
   if [ "$manager" != "1" ]; then
     echo "Response should have manager ID \"1\" but found \"$manager\""
+  fi
+  if [ "$suboridnatesSize" != "3" ]; then
+    echo "Response should have suboridnates array of size \"3\" but found \"$suboridnatesSize\""
+  fi
+  if [ "$colleaguesSize" != "2" ]; then
+    echo "Response should have colleagues array of size \"2\" but found \"$colleaguesSize\""
   fi
   echo ""
 fi
