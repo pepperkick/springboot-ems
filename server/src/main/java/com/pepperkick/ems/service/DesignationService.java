@@ -15,6 +15,7 @@ public class DesignationService {
     public DesignationService(DesignationRepository designationRepository) {
         this.designationRepository = designationRepository;
 
+        // Check if designation table is empty, if yes then fill with initial data
         List<Designation> designations = designationRepository.findAll();
         if (designations.size() == 0) {
             String[] titles = { "Director", "Manager", "Lead", "Developer", "DevOps", "QA", "Intern" };
@@ -29,13 +30,18 @@ public class DesignationService {
         }
     }
 
+    // Get designation level that is between two designations
     public float getNewDesignationLevel(Designation higherDesignation) {
         boolean flag = false;
         Designation highest = higherDesignation;
+
+        // Get list of all designations ordered by level
         List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
 
+        // Get index of highest designation in the list
         int index = designations.indexOf(higherDesignation);
 
+        // Loop through the list to find the next highest designation by level
         while (!flag) {
             try {
                 Designation temp = designations.get(index++);
@@ -49,6 +55,7 @@ public class DesignationService {
             }
         }
 
+        // Return average of two designation levels if higher designation is found otherwise send highest designation level plus 1
         return flag ? (highest.getLevel() + higherDesignation.getLevel()) / 2 : higherDesignation.getLevel() + 1;
     }
 }

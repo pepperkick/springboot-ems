@@ -21,6 +21,7 @@ public class EmployeeService {
         this.employeeRepository = employeeRepository;
         this.messageHelper = messageHelper;
 
+        // Check if employee table is empty, if yes then fill with initial data
         List<Employee> employees = employeeRepository.findAll();
         if (employees.size() == 0) {
             String[] names = { "Thor", "Iron Man", "Hulk", "Captain America", "War Machine", "Vision", "Falcon", "Ant Man", "Spider Man", "Black Widow" };
