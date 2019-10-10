@@ -99,9 +99,9 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToGetEmployeeDueToInvalidTypeID() throws Exception {
         mockMvc.
-                perform(get(path + "/1.1").accept(MediaType.APPLICATION_JSON)).
-                andDo(print()).
-                andExpect(status().isBadRequest());
+            perform(get(path + "/1.1").accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isBadRequest());
     }
 
     // Should fail with response code 404 due to employee not found with id
@@ -110,7 +110,10 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(get(path + "/100").accept(MediaType.APPLICATION_JSON)).
             andDo(print()).
-            andExpect(status().isNotFound());
+            andExpect(status().isNotFound()).
+            andExpect(jsonPath("$.message").value(
+                messageHelper.getMessage("error.route.employee.notfound", 100)
+            ));
     }
 
     // POST /employees
@@ -385,6 +388,20 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         body.put("name", "Black Panther");
         body.put("jobTitle", "Manager");
         body.put("managerId", 1);
+        body.put("replace", true);
+
+        mockMvc.
+            perform(put(path + "/2").content(body.toString()).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isCreated());
+    }
+
+    // Should PUT with response code 201 and replace employee
+    @Test
+    public void shouldPutAndReplaceEmployeeWithEmptyManager() throws Exception {
+        JSONObject body = new JSONObject();
+        body.put("name", "Black Panther");
+        body.put("jobTitle", "Manager");
         body.put("replace", true);
 
         mockMvc.

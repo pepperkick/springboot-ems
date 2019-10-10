@@ -258,13 +258,10 @@ public class EmployeeRoute {
             // Find employee with PUT body managerId
             Employee manager = employeeRepository.findById(body.getManagerId());
 
-            // If designation is not equal to main designation (Director) and manager not found then return 400
+            // If designation is not equal to main designation (Director) and manager not found then set manager is current employee's manager
             // Any designation other then main designation (Director) must have a manager
             if (!designation.equalsTo(mainDesignation) && manager == null)
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
-                    HttpStatus.BAD_REQUEST
-                );
+                manager = employee.getManager();
 
             // If manager is found and manager's designation level is less than new employee's designation level then return 400
             // Manager's designation level cannot be lower than it's subordinates
@@ -311,6 +308,7 @@ public class EmployeeRoute {
 
             // Delete old employee
             employeeRepository.delete(oldEmployee);
+            employee = employeeRepository.findById((int) employee.getId());
 
             // Return new employee
             return new ResponseEntity<>(employee, HttpStatus.CREATED);

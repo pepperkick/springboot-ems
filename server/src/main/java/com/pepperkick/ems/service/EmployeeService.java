@@ -48,9 +48,9 @@ public class EmployeeService {
 
         if (employee == null)
             if (notfound)
-                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound"));
+                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
             else
-                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound"));
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound", id));
 
         return employee;
     }
