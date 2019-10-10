@@ -180,7 +180,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
 
     // Should fail to POST with response code 400 due to new employee having higher level designation than it's manager
     @Test
-    public void shouldFailToAddEmployeeDueToHigherDesignation() throws Exception {
+    public void shouldFailPostNewEmployeeDueToHigherDesignation() throws Exception {
         JSONObject body = new JSONObject();
         body.put("name", "Black Panther");
         body.put("jobTitle", "Manager");
@@ -197,7 +197,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
 
     // Should fail to POST with response code 400 due to restrictions of not having multiple directors
     @Test
-    public void shouldFailToAPostNewEmployeeDueToSingleDirectorRestriction() throws Exception {
+    public void shouldFailToPostNewEmployeeDueToSingleDirectorRestriction() throws Exception {
         JSONObject body = new JSONObject();
         body.put("name", "Black Panther");
         body.put("jobTitle", "Director");
@@ -214,7 +214,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
 
     // Should fail to POST with response code 400 due to no employee found with manager id
     @Test
-    public void shouldFailToAddEmployeeDueToInvalidManager() throws Exception {
+    public void shouldFailPostNewEmployeeDueToInvalidManager() throws Exception {
         JSONObject body = new JSONObject();
         body.put("name", "Black Panther");
         body.put("jobTitle", "Manager");
@@ -376,6 +376,39 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             perform(put(path + "/1")).
             andDo(print()).
             andExpect(status().isUnsupportedMediaType());
+    }
+
+    // Should PUT with response code 201 and replace employee
+    @Test
+    public void shouldPutAndReplaceEmployee() throws Exception {
+        JSONObject body = new JSONObject();
+        body.put("name", "Black Panther");
+        body.put("jobTitle", "Manager");
+        body.put("managerId", 1);
+        body.put("replace", true);
+
+        mockMvc.
+            perform(put(path + "/2").content(body.toString()).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isCreated());
+    }
+
+    // Should fail to PUT with response code 400 due to replaced employee having lower designation than it's subordinates
+    @Test
+    public void shouldFailToPutAndReplaceEmployeeDueToLowerDesignation() throws Exception {
+        JSONObject body = new JSONObject();
+        body.put("name", "Black Panther");
+        body.put("jobTitle", "Developer");
+        body.put("managerId", 1);
+        body.put("replace", true);
+
+        mockMvc.
+            perform(put(path + "/2").content(body.toString()).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)).
+            andDo(print()).
+            andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(
+                messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", body.get("jobTitle"))
+            ));
     }
 
     // Should fail to PATCH with response code 405

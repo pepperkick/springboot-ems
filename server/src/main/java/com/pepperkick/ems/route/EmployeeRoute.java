@@ -274,6 +274,26 @@ public class EmployeeRoute {
                      HttpStatus.BAD_REQUEST
                 );
 
+            // If employee's subordinates list is not empty
+            if (employee.getSubordinates().size() > 0) {
+                // Get current employee's designation
+                Designation highest = employee.getSubordinates().first().getDesignation();
+
+                // Check designation of each subordinate
+                for (Employee sub : employee.getSubordinates()) {
+                    if (sub.getDesignation().getLevel() < highest.getLevel())
+                        highest = sub.getDesignation();
+                }
+
+                // If current designation level is lower then highest subordinate designation level then return 400
+                // Employee designation cannot be lower than it's subordinates
+                if (designation.getLevel() >= highest.getLevel())
+                    return ResponseHelper.createErrorResponseEntity(
+                            messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", designation.getTitle()),
+                            HttpStatus.BAD_REQUEST
+                    );
+            }
+
             // Create new employee
             employee = new Employee();
             employee.setName(body.getName());
@@ -281,7 +301,7 @@ public class EmployeeRoute {
             employee.setManager(manager);
 
             // Save new employee
-            employeeRepository.save(employee);
+            employee = employeeRepository.save(employee);
 
             // Change manager of old employee's subordinates
             for (Employee sub : oldEmployee.getSubordinates()) {
