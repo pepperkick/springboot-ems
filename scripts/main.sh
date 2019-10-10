@@ -67,14 +67,16 @@ function deleteByIdOperation() {
 }
 
 names=( "Thor" "Iron Man" "Hulk" "Captain America" "War Machine" "Vision" "Falcon" "Ant Man" "Spider Man" "Black Widow" )
-jobs=( 1 2 3 2 6 5 4 3 7 4 )
+jobs=( "Director" "Manager" "Lead" "Manager" "QA" "DevOps" "Developer" "Lead" "Intern" "Developer" )
 managers=( -1 1 1 1 2 2 4 4 2 3 )
-function generateDate() {
-    for i in {1..10}
+function generateData() {
+    for i in {0..9}
     do
-      echo "$i"
+      postOperation  "{ \"name\": \"${names[i]}\", \"jobTitle\": \"${jobs[i]}\", \"managerId\": ${managers[i]} }"
     done
 }
+
+generateData
 
 # GET all employees list
 newTestCase "Perform GET all employees operation"
