@@ -10,7 +10,7 @@ A Spring Boot project for Employee Management System
     - [Designation](#designation)
     - [Employee](#employee)
 - [API](#api)
-- [Validation Scrip](#validation-script)
+- [Validation Script](#validation-script)
 - [Docker](#docker)
     
 ## Database
@@ -48,12 +48,12 @@ Employee
 | 2   | Iron Man        | 1       | 2 (Manager)   |
 | 3   | Hulk            | 1       | 3 (Lead)      |
 | 4   | Captain America | 1       | 2 (Manager)   |
-| 5   | WarMachine      | 2       | 6 (QA)        |
+| 5   | War Machine     | 2       | 6 (QA)        |
 | 6   | Vision          | 2       | 5 (DevOps)    |
 | 7   | Falcon          | 4       | 4 (Developer) |
 | 8   | Ant Man         | 4       | 3 (Lead)      |
 | 9   | Spider Man      | 2       | 7 (Intern)    |
-| 10  | Black kWidow     | 3       | 4 (Developer)
+| 10  | Black kWidow    | 3       | 4 (Developer) |
 
 ## API
 
