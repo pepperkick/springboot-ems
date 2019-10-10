@@ -121,7 +121,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
 
     @Override
     public int compareTo(Employee o) {
-        return this.getId() - o.getId();
+        return compare(this, o);
     }
 
     @Override

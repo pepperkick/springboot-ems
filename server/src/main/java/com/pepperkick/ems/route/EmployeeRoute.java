@@ -70,7 +70,7 @@ public class EmployeeRoute {
             );
 
         // Sort the list according to designation and name
-        employees.sort(null);
+        Collections.sort(employees, Employee::compareTo);
 
         // Return employee list
         return new ResponseEntity<>(employees, HttpStatus.OK);
