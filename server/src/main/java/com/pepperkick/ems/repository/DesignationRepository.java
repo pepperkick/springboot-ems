@@ -8,9 +8,18 @@ import java.util.List;
 
 @Repository
 public interface DesignationRepository extends CrudRepository<Designation, Integer> {
-    Designation findByTitle(String title);
+    // Find a designation by ID
     Designation findById(int id);
+
+    // Find a designation by it's title
+    Designation findByTitle(String title);
+
+    // Find all designations
     List<Designation> findAll();
+
+    // Find all designations sorted by level in ascending order
     List<Designation> findAllByOrderByLevelAsc();
+
+    // Find all designations of certain level
     List<Designation> findByLevel(float level);
 }
