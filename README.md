@@ -10,6 +10,7 @@ A Spring Boot project for Employee Management System
     - [Designation](#designation)
     - [Employee](#employee)
 - [API](#api)
+- [Validation Scrip](#validation-script)
 - [Docker](#docker)
     
 ## Database
@@ -52,7 +53,7 @@ Employee
 | 7   | Falcon          | 4       | 4 (Developer) |
 | 8   | Ant Man         | 4       | 3 (Lead)      |
 | 9   | Spider Man      | 2       | 7 (Intern)    |
-| 10  | Blac kWidow     | 3       | 4 (Developer)
+| 10  | Black kWidow     | 3       | 4 (Developer)
 
 ## API
 
@@ -74,21 +75,101 @@ GET /employee
 Response
 ```json
 [
-  {
-    "id": 1,
-    "name": "Thor",
-    "jobTitle": "Director"
-  },
-  {
-    "id": 2,
-    "name": "IronMan",
-    "jobTitle": "Manager",
-    "manager": {
-        "id": 1,
-        "name": "Thor",
-        "jobTitle": "Director"      
-    }   
-  }
+   {
+      "id":1,
+      "name":"Thor",
+      "jobTitle":"Director",
+      "subordinates":[
+         {
+            "id":4,
+            "name":"Captain America",
+            "jobTitle":"Manager"
+         },
+         {
+            "id":2,
+            "name":"Iron Man",
+            "jobTitle":"Manager"
+         },
+         {
+            "id":3,
+            "name":"Hulk",
+            "jobTitle":"Lead"
+         }
+      ]
+   },
+   {
+      "id":4,
+      "name":"Captain America",
+      "jobTitle":"Manager",
+      "manager":{
+         "id":1,
+         "name":"Thor",
+         "jobTitle":"Director"
+      },
+      "colleagues":[
+         {
+            "id":2,
+            "name":"Iron Man",
+            "jobTitle":"Manager"
+         },
+         {
+            "id":3,
+            "name":"Hulk",
+            "jobTitle":"Lead"
+         }
+      ],
+      "subordinates":[
+         {
+            "id":8,
+            "name":"Ant Man",
+            "jobTitle":"Lead"
+         },
+         {
+            "id":7,
+            "name":"Falcon",
+            "jobTitle":"Developer"
+         }
+      ]
+   },
+   {
+      "id":2,
+      "name":"Iron Man",
+      "jobTitle":"Manager",
+      "manager":{
+         "id":1,
+         "name":"Thor",
+         "jobTitle":"Director"
+      },
+      "colleagues":[
+         {
+            "id":4,
+            "name":"Captain America",
+            "jobTitle":"Manager"
+         },
+         {
+            "id":3,
+            "name":"Hulk",
+            "jobTitle":"Lead"
+         }
+      ],
+      "subordinates":[
+         {
+            "id":6,
+            "name":"Vision",
+            "jobTitle":"DevOps"
+         },
+         {
+            "id":5,
+            "name":"War Machine",
+            "jobTitle":"QA"
+         },
+         {
+            "id":9,
+            "name":"Spider Man",
+            "jobTitle":"Intern"
+         }
+      ]
+   }
 ]
 ```
 
@@ -109,7 +190,7 @@ Request
 ```
 POST /employee
 body: {
-    "name": "DrStrange",
+    "name": "Dr Strange",
     "jobTitle": "Manager",
     "managerId": 1
 }
@@ -120,7 +201,7 @@ Response
 ```json
 {
     "id": 11,
-    "name": "DrStrange",
+    "name": "Dr Strange",
     "jobTitle": "Manager",
     "manager": {
         "id": 1,
@@ -130,12 +211,12 @@ Response
     "colleagues": [
         {
             "id": 4,
-            "name": "CaptainAmerica",
+            "name": "Captain America",
             "jobTitle": "Manager"
         },
         {
             "id": 2,
-            "name": "IronMan",
+            "name": "Iron Man",
             "jobTitle": "Manager"
         },
         {
@@ -170,7 +251,7 @@ Response
   "colleagues": [
     {
       "id":4,
-      "name":"CaptainAmerica",
+      "name":"Captain America",
       "jobTitle":"Manager"
     },
     {
@@ -182,17 +263,17 @@ Response
   "subordinates": [
     {
       "id":6,
-      "name":"Vison",
+      "name":"Vision",
       "jobTitle":"DevOps"
     },
     {
       "id":5,
-      "name":"WarMachine",
+      "name":"War Machine",
       "jobTitle":"QA"
     },
     {
       "id":9,
-      "name":"SpiderMan",
+      "name":"Spider Man",
       "jobTitle":"Intern"
     }
   ]
@@ -217,7 +298,7 @@ Request
 ```
 PUT /employee/3
 body: {
-    "name": "BlackPanther",
+    "name": "Black Panther",
     "jobTitle": "Lead",
     "managerId": 1,
     "replace": true
@@ -228,7 +309,7 @@ Response
 ```json
 {
     "id": 12,
-    "name": "BlackPanther",
+    "name": "Black Panther",
     "jobTitle": "Lead",
     "manager": {
         "id": 1,
@@ -238,19 +319,19 @@ Response
     "colleagues": [
         {
             "id": 4,
-            "name": "CaptainAmerica",
+            "name": "Captain America",
             "jobTitle": "Manager"
         },
         {
             "id": 2,
-            "name": "IronMan",
+            "name": "Iron Man",
             "jobTitle": "Manager"
         }
     ],
     "subordinates": [
       {
         "id":10,
-        "name":"BlackWidow",
+        "name":"Black Widow",
         "jobTitle":"Developer"
       }
     ]
@@ -366,6 +447,24 @@ Response
 ```
 OK
 ```
+
+## Validation Script
+
+### Setup
+- Download JQ from [here](https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe)
+- Copy exe file to `C:\Users\<username>\AppData\Local\Programs\Git`
+
+### Run
+```
+git-bash
+./main.sh
+```
+
+### Environment Variables
+
+- **SERVER_HOST**: Host of server (Default: localhost)
+- **SERVER_PORT**: Port of server (Default: 8080)
+- **SERVER_API_PREFIX**: Prefix of server API (Default: /api/v1)
 
 ## Docker
 
