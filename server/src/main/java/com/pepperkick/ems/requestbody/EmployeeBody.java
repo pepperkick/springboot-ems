@@ -7,6 +7,15 @@ import com.pepperkick.ems.util.ValidatorHelper;
 
 public class EmployeeBody {
     public static void validate(MessageHelper messageHelper, String name, String jobTitle) throws BadRequestException {
+        validateName(messageHelper, name);
+
+        if (jobTitle == null || jobTitle.compareTo("") == 0)
+            throw new BadRequestException(
+                    messageHelper.getMessage("error.route.employee.empty.param.designation")
+            );
+    }
+
+    public static void validateName(MessageHelper messageHelper, String name) throws BadRequestException {
         try {
             ValidatorHelper.validateName(name);
         } catch (ValidationError e) {
@@ -30,11 +39,5 @@ public class EmployeeBody {
                     );
             }
         }
-
-        if (jobTitle == null || jobTitle.compareTo("") == 0)
-            throw new BadRequestException(
-                    messageHelper.getMessage("error.route.employee.empty.param.designation")
-            );
     }
-
 }

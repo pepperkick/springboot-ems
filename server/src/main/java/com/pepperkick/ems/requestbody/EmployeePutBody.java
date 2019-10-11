@@ -1,5 +1,6 @@
 package com.pepperkick.ems.requestbody;
 
+import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
@@ -25,6 +26,7 @@ public class EmployeePutBody {
         if (replace) {
             EmployeeBody.validate(messageHelper, name, jobTitle);
         } else {
+            EmployeeBody.validateName(messageHelper, name);
             if ( this.name == null && this.jobTitle == null && this.managerId == -1)
                 throw new BadRequestException(
                     messageHelper.getMessage("error.route.employee.update.empty.body")
