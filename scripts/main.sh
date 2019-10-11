@@ -39,9 +39,9 @@ function printTestCase() {
 
 function printResults() {
   echo ""
-  echo "------------------------------"
+  echo "------------------------------------------------------------"
   echo "Passed: ($result_passes / $test_num) | Failed: ($result_fails / $test_num)"
-  echo "------------------------------"
+  echo "------------------------------------------------------------"
 }
 
 function formatResponse() {
@@ -76,6 +76,66 @@ function deleteByIdOperation() {
    formatResponse
 }
 
+function shouldFailGetOperation() {
+  getByIdOperation "$1"
+
+  if [ "$statusCode" == "$2" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response code should have been \"$2\" but found \"$statusCode\""
+    echo "Response body: $body"
+    echo  ""
+  fi
+}
+
+function shouldBadRequestGetOperation() {
+  shouldFailGetOperation "$1" "400"
+}
+
+function shouldNotFoundGetOperation() {
+  shouldFailGetOperation "$1" "404"
+}
+
+function shouldFailPostOperation() {
+  postOperation "$1"
+
+  if [ "$statusCode" == "$2" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response code should have been \"$2\" but found \"$statusCode\""
+    echo "Response body: $body"
+    echo  ""
+  fi
+}
+
+function shouldBadRequestPostOperation() {
+  shouldFailPostOperation "$1" "400"
+}
+
+function shouldFailDeleteOperation() {
+  deleteByIdOperation "$1"
+
+  if [ "$statusCode" == "$2" ]; then
+    printTestCase true
+    echo "$statusCode"
+  else
+    printTestCase false
+    echo "Response code should have been \"$2\" but found \"$statusCode\""
+    echo "Response body: $body"
+    echo  ""
+  fi
+}
+
+function shouldBadRequestDeleteOperation() {
+  shouldFailDeleteOperation "$1" "400"
+}
+
+function shouldNotFoundDeleteOperation() {
+  shouldFailDeleteOperation "$1" "404"
+}
+
 names=( "Thor" "Iron Man" "Hulk" "Captain America" "War Machine" "Vision" "Falcon" "Ant Man" "Spider Man" "Black Widow" )
 jobs=( "Director" "Manager" "Lead" "Manager" "QA" "DevOps" "Developer" "Lead" "Intern" "Developer" )
 managers=( -1 1 1 1 2 2 4 4 2 3 )
@@ -94,15 +154,12 @@ function generateData() {
     done
 }
 
-# TEST 1
 # Initialize dummy data
 newTestCase "Initialize with dummy data"
 generateData
 printTestCase true
 
-# TEST 2
-# GET all employees list
-newTestCase "Perform GET all employees operation"
+newTestCase "Perform GET /employee"
 getOperation
 
 listSize=$(echo "$body" | $jq ". | length")
@@ -115,8 +172,6 @@ else
   echo ""
 fi
 
-# TEST 3
-# Check if employee list is sorted
 newTestCase "Check if employees list is soreted"
 sortedArray=(1 4 2 8 3 10 7 6 5 9)
 failedFlag=0
@@ -135,9 +190,7 @@ if [ "$failedFlag" == "0" ]; then
   printTestCase true
 fi
 
-# TEST 4
-# GET employee by ID
-newTestCase "Perform GET employee by ID operation"
+newTestCase "Perform GET /employee/{id}"
 getByIdOperation 2
 
 id=$(echo "$body" | $jq ".id")
@@ -186,9 +239,76 @@ else
   echo ""
 fi
 
-# TEST 5
-# POST new employee
-newTestCase "Perform POST and add new employee operation"
+newTestCase "Check if colleagues of employee are in sorted order"
+
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
+  printTestCase false
+  echo "Cannot run this test as test $((test_num-1)) has failed"
+  echo ""
+else
+  sortedArray=(4 3)
+
+  for i in {0..1}
+  do
+    id=$(echo "$body" | $jq ".colleagues[$i].id")
+    if [ "$id" != "${sortedArray[i]}" ]; then
+      printTestCase false
+      echo "Employee's colleagues was not printed in sorted order"
+      failedFlag=1
+      break
+    fi
+  done
+
+  if [ "$failedFlag" == "0" ]; then
+    printTestCase true
+  fi
+fi
+
+newTestCase "Check if subordinates of employee are in sorted order"
+getByIdOperation 1
+
+sortedArray=(4 2 3)
+
+if [ "${test_flag[$test_num-2]}" == "0" ]; then
+  printTestCase false
+  echo "Cannot run this test as test $((test_num-2)) has failed"
+  echo ""
+else
+  for i in {0..2}
+  do
+    id=$(echo "$body" | $jq ".subordinates[$i].id")
+    if [ "$id" != "${sortedArray[i]}" ]; then
+      printTestCase false
+      echo "Employee's subordinates was not printed in sorted order"
+      failedFlag=1
+      break
+    fi
+  done
+
+  if [ "$failedFlag" == "0" ]; then
+    printTestCase true
+  fi
+fi
+
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
+  printTestCase false
+  echo "Cannot run many tests as test $((test_num-1)) has failed"
+  echo ""
+else
+  newTestCase "Check if it fails to get due to id has no employees assigned"
+  shouldNotFoundGetOperation 100
+
+  newTestCase "Check if it fails to get due to incorrent type id"
+  shouldBadRequestGetOperation "1.1"
+
+  newTestCase "Check if it fails to get due to invalid id"
+  shouldBadRequestGetOperation "-1"
+
+  newTestCase "Check if it fails to get director"
+  shouldBadRequestGetOperation 1
+fi
+
+newTestCase "Perform POST /employee"
 
 postOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 1 }'
 id=$(echo "$body"| $jq ".id")
@@ -205,9 +325,40 @@ else
   echo ""
 fi
 
-# TEST 6
-# DELETE employee by ID
-newTestCase "Perform DELETE employee by ID operation"
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
+  printTestCase false
+  echo "Cannot run many tests as test $((test_num-1)) has failed"
+  echo ""
+else
+  newTestCase "Check if it fails to post with no employee name"
+  shouldBadRequestPostOperation '{ "jobTitle": "Manager", "managerId": 1 }'
+
+  newTestCase "Check if it fails to post with no job title"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "managerId": 1 }'
+
+  newTestCase "Check if it fails to post with no manager ID"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager" }'
+
+  newTestCase "Check if it fails to post with invalid manager ID"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": -1 }'
+
+  newTestCase "Check if it fails to post when manager ID is not out"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 100 }'
+
+  newTestCase "Check if it fails to post with invalid designation"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Senior Manager", "managerId": 1 }'
+
+  newTestCase "Check if it fails to post with invalid name"
+  shouldBadRequestPostOperation '{ "name": "#B1ack Pan1h3r", "jobTitle": "Manager", "managerId": 1 }'
+
+  newTestCase "Check if it fails to post with same designation as manager"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 2 }'
+
+  newTestCase "Check if it fails to post with higher designation than manager"
+  shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 9 }'
+fi
+
+newTestCase "Perform DELETE /employee/{id}"
 deleteByIdOperation 2
 status1="$statusCode"
 body1="$body"
@@ -215,12 +366,12 @@ body1="$body"
 getByIdOperation 2
 status2="$statusCode"
 
-if [ "$status1" == "200" ] && [ "$status2" == "404" ]; then
+if [ "$status1" == "204" ] && [ "$status2" == "404" ]; then
   printTestCase true
 else
   printTestCase false
-  if [ "$status1" != "200" ]; then
-    echo "DELETE response status should be \"200\" but found \"$status1\""
+  if [ "$status1" != "204" ]; then
+    echo "DELETE response status should be \"204\" but found \"$status1\""
     echo "Response body: $body1"
   fi
   if [ "$status2" != "404" ]; then
@@ -229,9 +380,7 @@ else
   echo ""
 fi
 
-# TEST 7
-# Check if deleted employee's subordinate's manager changed
-newTestCase "Check if deleted employee's subordinates' manager ID was changed"
+newTestCase "Check if deleted employee's subordinates' manager ID has changed"
 
 if [ "${test_flag[$test_num-1]}" == "0" ]; then
   printTestCase false
@@ -251,6 +400,24 @@ else
     echo "Manager ID of subordinates of deleted employee was not updated, required 1 but found $managerId1"
     echo ""
   fi
+fi
+
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
+  printTestCase false
+  echo "Cannot run many tests as test $((test_num-1)) has failed"
+  echo ""
+else
+  newTestCase "Check if it fails to delete due to id has no employees assigned"
+  shouldNotFoundDeleteOperation 100
+
+  newTestCase "Check if it fails to delete due to incorrent type id"
+  shouldBadRequestDeleteOperation "1.1"
+
+  newTestCase "Check if it fails to delete due to invalid id"
+  shouldBadRequestDeleteOperation "-1"
+
+  newTestCase "Check if it fails to delete director"
+  shouldBadRequestDeleteOperation 1
 fi
 
 printResults
