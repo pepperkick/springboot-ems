@@ -14,6 +14,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Entity
 @Table(name = "EMPLOYEE")
@@ -97,8 +98,8 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
         return subordinates;
     }
 
-    public SortedSet<Employee> getSubordinates(Employee e) {
-        SortedSet<Employee> temp = subordinates;
+    private SortedSet<Employee> getSubordinates(Employee e) {
+        SortedSet<Employee> temp = new TreeSet<>(subordinates);
         temp.remove(e);
         return temp;
     }
@@ -130,8 +131,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
         if (levelDiff == 0) {
             int nameDiff = o1.getName().compareTo(o2.getName());
             if (nameDiff == 0) {
-                int idDiff = o1.getId() - o2.getId();
-                return Integer.compare(idDiff, 0);
+                return o1.getId() - o2.getId();
             } else {
                 return nameDiff > 0 ? 1 : -1;
             }
