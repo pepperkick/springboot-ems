@@ -453,6 +453,20 @@ else
     echo ""
   fi
 
+  newTestCase "Check if it replaces employee without manager"
+  putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Lead", "replace": true }'
+  managerId=$(echo "$body" | $jq ".manager.id")
+  id=$(echo "$body" | $jq ".id")
+
+  if [ "$managerId" == "4" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response name should be \"4\" but found $title"
+    echo "Response body: $body"
+    echo ""
+  fi
+
   newTestCase "Check if it fails to put due to id has no employees assigned"
   shouldBadRequestPutOperation 100 '{ }'
 
@@ -554,6 +568,20 @@ else
 
   newTestCase "Check if it fails to delete director"
   shouldBadRequestDeleteOperation 1
+fi
+
+newTestCase "Check if it fails to PATCH /employees/{id}"
+
+response=$(curl --request PATCH -sw "\nRESP_CODE:%{response_code}" \
+  --url "$apiUrl/employees/$1")
+formatResponse
+
+if [ "$statusCode" == "405" ]; then
+  printTestCase true
+else
+  printTestCase false
+  echo "Response should have been \"405\" but found \"$statusCode\""
+  echo ""
 fi
 
 printResults
