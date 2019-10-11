@@ -76,6 +76,14 @@ function deleteByIdOperation() {
    formatResponse
 }
 
+function putByIdOperation() {
+  response=$(curl --request PUT -sw "\nRESP_CODE:%{response_code}" \
+      --header "Content-Type: application/json" \
+      --data "$2" \
+      --url "$apiUrl/employees/$1")
+   formatResponse
+}
+
 function shouldFailGetOperation() {
   getByIdOperation "$1"
 
@@ -114,12 +122,15 @@ function shouldBadRequestPostOperation() {
   shouldFailPostOperation "$1" "400"
 }
 
+function shouldUnsupportedMediaTypePostOperation() {
+  shouldFailPostOperation "$1" "415"
+}
+
 function shouldFailDeleteOperation() {
   deleteByIdOperation "$1"
 
   if [ "$statusCode" == "$2" ]; then
     printTestCase true
-    echo "$statusCode"
   else
     printTestCase false
     echo "Response code should have been \"$2\" but found \"$statusCode\""
@@ -134,6 +145,31 @@ function shouldBadRequestDeleteOperation() {
 
 function shouldNotFoundDeleteOperation() {
   shouldFailDeleteOperation "$1" "404"
+}
+
+function shouldFailPutOperation() {
+  putByIdOperation "$1" "$2"
+
+  if [ "$statusCode" == "$3" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response code should have been \"$3\" but found \"$statusCode\""
+    echo "Response body: $body"
+    echo  ""
+  fi
+}
+
+function shouldBadRequestPutOperation() {
+    shouldFailPutOperation "$1" "$2" "400"
+}
+
+function shouldNotFoundPutOperation() {
+    shouldFailPutOperation "$1" "$2" "404"
+}
+
+function shouldUnsupportedMediaTypePutOperation() {
+    shouldFailPutOperation "$1" "$2" "415"
 }
 
 names=( "Thor" "Iron Man" "Hulk" "Captain America" "War Machine" "Vision" "Falcon" "Ant Man" "Spider Man" "Black Widow" )
@@ -303,9 +339,6 @@ else
 
   newTestCase "Check if it fails to get due to invalid id"
   shouldBadRequestGetOperation "-1"
-
-  newTestCase "Check if it fails to get director"
-  shouldBadRequestGetOperation 1
 fi
 
 newTestCase "Perform POST /employee"
@@ -326,10 +359,15 @@ else
 fi
 
 if [ "${test_flag[$test_num-1]}" == "0" ]; then
-  printTestCase false
   echo "Cannot run many tests as test $((test_num-1)) has failed"
   echo ""
 else
+  newTestCase "Check if it fails to post with empty body"
+  shouldBadRequestPostOperation '{ }'
+
+  newTestCase "Check if it fails to post with invalid body"
+  shouldBadRequestPostOperation '<xml></xml>'
+
   newTestCase "Check if it fails to post with no employee name"
   shouldBadRequestPostOperation '{ "jobTitle": "Manager", "managerId": 1 }'
 
@@ -358,12 +396,106 @@ else
   shouldBadRequestPostOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 9 }'
 fi
 
+newTestCase "Perform PUT /employee/{id}"
+putByIdOperation 2 '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 1, "replace": true }'
+title=$(echo "$body" | $jq ".name")
+
+if [ "$title" == "\"Black Panther\"" ]; then
+  printTestCase true
+else
+  printTestCase false
+  echo "Response name should be \"Black Panther\" but found $title"
+  echo "Response body: $body"
+  echo ""
+fi
+
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
+  echo "Cannot run many tests as test $((test_num-1)) has failed"
+  echo ""
+else
+  newTestCase "Check if it updates employee name"
+  putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Manager", "managerId": 1, "replace": false }'
+  title=$(echo "$body" | $jq ".name")
+  id=$(echo "$body" | $jq ".id")
+
+  if [ "$title" == "\"Nick Fury\"" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response name should be \"Nick Fury\" but found $title"
+    echo "Response body: $body"
+    echo ""
+  fi
+
+  newTestCase "Check if it updates employee designation"
+  putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Lead", "managerId": 1, "replace": false }'
+  title=$(echo "$body" | $jq ".jobTitle")
+
+  if [ "$title" == "\"Lead\"" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response name should be \"Lead\" but found $title"
+    echo "Response body: $body"
+    echo ""
+  fi
+
+  newTestCase "Check if it updates employee manager"
+  putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Lead", "managerId": 4, "replace": false }'
+  managerId=$(echo "$body" | $jq ".manager.id")
+
+  if [ "$managerId" == "4" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Response name should be \"4\" but found $title"
+    echo "Response body: $body"
+    echo ""
+  fi
+
+  newTestCase "Check if it fails to put due to id has no employees assigned"
+  shouldBadRequestPutOperation 100 '{ }'
+
+  newTestCase "Check if it fails to put with invalid body"
+  shouldBadRequestPutOperation 2 '<xml></xml>'
+
+  newTestCase "Check if it fails to put due to incorrent type id"
+  shouldBadRequestPutOperation "1.1" '{ }'
+
+  newTestCase "Check if it fails to put due to invalid id"
+  shouldBadRequestPutOperation "-1" '{ }'
+
+  newTestCase "Check if it fails to put and update due to no body"
+  shouldBadRequestPutOperation "$id" '{ }'
+
+  newTestCase "Check if it fails to put and update with invalid manager ID"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": -100 }'
+
+  newTestCase "Check if it fails to put and update when manager ID is not found"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 100 }'
+
+  newTestCase "Check if it fails to put and update with invalid designation"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Senior Manager", "managerId": 1 }'
+
+  newTestCase "Check if it fails to put and update with invalid name"
+  shouldBadRequestPutOperation "$id" '{ "name": "#B1ack Pan1h3r", "jobTitle": "Manager", "managerId": 1 }'
+
+  newTestCase "Check if it fails to put and update with same designation as manager"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 2 }'
+
+  newTestCase "Check if it fails to put and update with higher designation than manager"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 9 }'
+
+  newTestCase "Check if it fails to update director's designation"
+  shouldBadRequestPutOperation 1 '{ "jobTitle": "Intern" }'
+fi
+
 newTestCase "Perform DELETE /employee/{id}"
-deleteByIdOperation 2
+deleteByIdOperation 3
 status1="$statusCode"
 body1="$body"
 
-getByIdOperation 2
+getByIdOperation 3
 status2="$statusCode"
 
 if [ "$status1" == "204" ] && [ "$status2" == "404" ]; then
@@ -393,11 +525,12 @@ else
   getByIdOperation 6
   managerId2=$(echo "$body"| $jq ".manager.id")
 
-  if [ "$managerId1" == "1" ] && [ "$managerId2" == "1" ]; then
+  if [ "$managerId1" == "12" ] && [ "$managerId2" == "12" ]; then
     printTestCase true
   else
     printTestCase false
-    echo "Manager ID of subordinates of deleted employee was not updated, required 1 but found $managerId1"
+    echo "Manager ID of subordinates of deleted employee was not updated, should have been 12 but found $managerId1"
+    echo "Response Body: $body"
     echo ""
   fi
 fi
