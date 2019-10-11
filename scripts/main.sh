@@ -12,6 +12,7 @@ apiPrefix=${SERVER_API_PREFIX:="api/v1"}
 apiUrl="http://$serverHost:$serverPort/$apiPrefix"
 jq=/jq-win64.exe
 test_num=0
+test_flag=()
 result_passes=0
 result_fails=0
 RED='\033[0;31m'
@@ -19,19 +20,28 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 # Helper functions
+function newTestCase() {
+  test_num=$((test_num+1))
+  description=$1
+}
+
 function printTestCase() {
   if [ "$1" == "true" ]; then
     echo -e "${GREEN}[o]${NC} Test Case $test_num: $description"
     result_passes=$((result_passes+1))
+    test_flag[$test_num]="1"
   else
     echo -e "${RED}[x]${NC} Test Case $test_num: $description"
     result_fails=$((result_fails+1))
+    test_flag[$test_num]="0"
   fi
 }
 
-function newTestCase() {
-  test_num=$((test_num+1))
-  description=$1
+function printResults() {
+  echo ""
+  echo "------------------------------"
+  echo "Passed: ($result_passes / $test_num) | Failed: ($result_fails / $test_num)"
+  echo "------------------------------"
 }
 
 function formatResponse() {
@@ -73,11 +83,24 @@ function generateData() {
     for i in {0..9}
     do
       postOperation  "{ \"name\": \"${names[i]}\", \"jobTitle\": \"${jobs[i]}\", \"managerId\": ${managers[i]} }"
+      if [ "$statusCode" != "201" ]; then
+        printTestCase false
+        echo "Faild to add initial data, response status code should have been \"201\" but found \"$statusCode\""
+        echo "Response body: $body"
+        echo ""
+        printResults
+        exit
+      fi
     done
 }
 
+# TEST 1
+# Initialize dummy data
+newTestCase "Initialize with dummy data"
 generateData
+printTestCase true
 
+# TEST 2
 # GET all employees list
 newTestCase "Perform GET all employees operation"
 getOperation
@@ -92,6 +115,7 @@ else
   echo ""
 fi
 
+# TEST 3
 # Check if employee list is sorted
 newTestCase "Check if employees list is soreted"
 sortedArray=(1 4 2 8 3 10 7 6 5 9)
@@ -111,6 +135,7 @@ if [ "$failedFlag" == "0" ]; then
   printTestCase true
 fi
 
+# TEST 4
 # GET employee by ID
 newTestCase "Perform GET employee by ID operation"
 getByIdOperation 2
@@ -157,9 +182,11 @@ else
   if [ "$colleaguesSize" != "2" ]; then
     echo "Response should have colleagues array of size \"2\" but found \"$colleaguesSize\""
   fi
+  echo "Response body: $body"
   echo ""
 fi
 
+# TEST 5
 # POST new employee
 newTestCase "Perform POST and add new employee operation"
 
@@ -174,13 +201,16 @@ if [ "$title" == "\"Black Panther\"" ]; then
 else
   printTestCase false
   echo "Response name should be \"Black Panther\" but found $title"
+  echo "Response body: $body"
   echo ""
 fi
 
+# TEST 6
 # DELETE employee by ID
 newTestCase "Perform DELETE employee by ID operation"
 deleteByIdOperation 2
 status1="$statusCode"
+body1="$body"
 
 getByIdOperation 2
 status2="$statusCode"
@@ -191,6 +221,7 @@ else
   printTestCase false
   if [ "$status1" != "200" ]; then
     echo "DELETE response status should be \"200\" but found \"$status1\""
+    echo "Response body: $body1"
   fi
   if [ "$status2" != "404" ]; then
     echo "GET response status should be \"404\" but found \"$status2\""
@@ -198,25 +229,28 @@ else
   echo ""
 fi
 
+# TEST 7
 # Check if deleted employee's subordinate's manager changed
 newTestCase "Check if deleted employee's subordinates' manager ID was changed"
 
-getByIdOperation 5
-managerId1=$(echo "$body"| $jq ".manager.id")
-
-getByIdOperation 6
-managerId2=$(echo "$body"| $jq ".manager.id")
-
-if [ "$managerId1" == "1" ] && [ "$managerId2" == "1" ]; then
-  printTestCase true
-else
+if [ "${test_flag[$test_num-1]}" == "0" ]; then
   printTestCase false
-  echo "Manager ID of subordinates of deleted employee was not updated, required 1 but found $managerId1"
+  echo "Cannot run this test as test $((test_num-1)) has failed"
   echo ""
+else
+  getByIdOperation 5
+  managerId1=$(echo "$body"| $jq ".manager.id")
+
+  getByIdOperation 6
+  managerId2=$(echo "$body"| $jq ".manager.id")
+
+  if [ "$managerId1" == "1" ] && [ "$managerId2" == "1" ]; then
+    printTestCase true
+  else
+    printTestCase false
+    echo "Manager ID of subordinates of deleted employee was not updated, required 1 but found $managerId1"
+    echo ""
+  fi
 fi
 
-# Results
-echo ""
-echo "------------------------------"
-echo "Passed: ($result_passes / $test_num) | Failed: ($result_fails / $test_num)"
-echo "------------------------------"
+printResults
