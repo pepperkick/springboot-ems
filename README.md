@@ -452,7 +452,7 @@ OK
 
 ### Setup
 - Download JQ from [here](https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe)
-- Copy exe file to `C:\Users\<username>\AppData\Local\Programs\Git`
+- Copy exe file to the GitBash folder (Example: `C:\Users\<username>\AppData\Local\Programs\Git`)
 
 ### Run
 ```
@@ -468,7 +468,9 @@ git-bash
 
 ## Docker
 
-Downloaded from [here](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe)
+### Setup
+
+Download docker from [here](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe)
 
 Version: 2.0.0.3
 
