@@ -1,7 +1,9 @@
 package com.pepperkick.ems.requestbody;
 
 import com.pepperkick.ems.exception.BadRequestException;
+import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
+import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -17,11 +19,29 @@ public class DesignationPostBody {
     private boolean equals;
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {
-        if (this.name == null || this.name.compareTo("") == 0)
-            throw new BadRequestException(
-                messageHelper.getMessage("error.route.designation.empty.param.name")
-            );
-
+        try {
+            ValidatorHelper.validateName(this.name);
+        } catch (ValidationError e) {
+            switch (e.code) {
+                case "null":
+                case "empty":
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.designation.empty.param.name")
+                    );
+                case "invalid":
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.designation.param.name.invalid")
+                    );
+                case "tooLong":
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.designation.param.name.too_long")
+                    );
+                case "tooShort":
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.designation.param.name.too_short")
+                    );
+            }
+        }
         if (this.name.length() > 30)
             throw new BadRequestException(
                     messageHelper.getMessage("error.route.designation.param.name.too_long")

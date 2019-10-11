@@ -192,7 +192,7 @@ public class EmployeeRoute {
         Employee employee;
 
         try {
-            validatorHelper.validateId(id);
+            validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
             employee = employeeService.findById(id, true);
         } catch (BadRequestException e) {
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -216,7 +216,7 @@ public class EmployeeRoute {
     ) {
         try {
             // Validate URL param ID
-            validatorHelper.validateId(id);
+            validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
             // Validate PUT body details
             body.validate(messageHelper);
         } catch (BadRequestException e) {
@@ -401,7 +401,7 @@ public class EmployeeRoute {
 
         try {
             // Validate URL param ID
-            validatorHelper.validateId(id);
+            validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
             // Get employee by ID equal to URL param ID
             employee = employeeService.findById(id, true);
         } catch (BadRequestException e) {

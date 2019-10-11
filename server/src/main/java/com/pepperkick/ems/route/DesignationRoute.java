@@ -158,7 +158,7 @@ public class DesignationRoute {
     public ResponseEntity deleteById(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
         try {
             // Validate URL param ID
-            validatorHelper.validateId(id);
+            validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
         } catch (BadRequestException e) {
             // Return 400 if there are validation error
             return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);

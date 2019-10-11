@@ -1,7 +1,9 @@
 package com.pepperkick.ems.requestbody;
 
 import com.pepperkick.ems.exception.BadRequestException;
+import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
+import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -21,20 +23,7 @@ public class EmployeePutBody {
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {
         if (replace) {
-            if (this.name == null || this.name.compareTo("") == 0)
-                throw new BadRequestException(
-                    messageHelper.getMessage("error.route.employee.empty.param.name")
-                );
-
-            if (this.name.length() > 30)
-                throw new BadRequestException(
-                        messageHelper.getMessage("error.route.employee.param.name.too_long")
-                );
-
-            if (this.jobTitle == null || this.jobTitle.compareTo("") == 0)
-                throw new BadRequestException(
-                    messageHelper.getMessage("error.route.employee.empty.param.designation")
-                );
+            EmployeeBody.validate(messageHelper, name, jobTitle);
         } else {
             if ( this.name == null && this.jobTitle == null && this.managerId == -1)
                 throw new BadRequestException(
