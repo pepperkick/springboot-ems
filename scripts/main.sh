@@ -483,6 +483,9 @@ else
   newTestCase "Check if it fails to put and update with same designation as manager"
   shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 2 }'
 
+  newTestCase "Check if it fails to put and update with lower designation than subordinates"
+  shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Developer", "managerId": 2 }'
+
   newTestCase "Check if it fails to put and update with higher designation than manager"
   shouldBadRequestPutOperation "$id" '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 9 }'
 
