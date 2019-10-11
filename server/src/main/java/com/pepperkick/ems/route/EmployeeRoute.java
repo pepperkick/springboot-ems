@@ -436,6 +436,6 @@ public class EmployeeRoute {
         employeeRepository.delete(employee);
 
         // Return employee
-        return new ResponseEntity<>(employee, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
