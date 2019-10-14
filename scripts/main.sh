@@ -2,7 +2,7 @@
 
 clear
 
-echo "Starting EMS Shell Script"
+echo "Starting EMS Shell Script v1.0.1"
 echo ""
 
 # Variables
