@@ -4,6 +4,8 @@ import com.pepperkick.ems.Application;
 import com.pepperkick.ems.configuration.H2Configuration;
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.repository.DesignationRepository;
+import com.pepperkick.ems.util.MessageHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -18,10 +20,13 @@ public class DesignationServiceTests {
     private DesignationRepository designationRepository;
     private DesignationService designationService;
 
+    @Autowired
+    private MessageHelper messageHelper;
+
     @BeforeTest
     public void init() {
         designationRepository = mock(DesignationRepository.class);
-        designationService = new DesignationService(designationRepository);
+        designationService = new DesignationService(designationRepository, messageHelper);
 
         Designation dummyDesignation = new Designation();
         dummyDesignation.setId(1);

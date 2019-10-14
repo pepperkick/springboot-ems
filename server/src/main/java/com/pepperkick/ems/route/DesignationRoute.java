@@ -64,6 +64,30 @@ public class DesignationRoute {
         return new ResponseEntity<>(designations, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/{id}", produces = "application/json")
+    @ApiOperation(value = "Get information of specific designation", response = Employee.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully retrieved the designation information"),
+            @ApiResponse(code = 404, message = "Designation not found"),
+    })
+    public ResponseEntity getById(@PathVariable int id) {
+        // Validate ID
+        validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
+
+        // Get all designations ordered by level
+        List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
+
+        // If designation list is empty then return 404 error
+        if (designations.size() == 0)
+            return ResponseHelper.createErrorResponseEntity(
+                    messageHelper.getMessage("error.route.designation.notfound.list"),
+                    HttpStatus.NOT_FOUND
+            );
+
+        // Return the designation list
+        return new ResponseEntity<>(designations, HttpStatus.OK);
+    }
+
     @PostMapping(produces = "application/json", consumes = "application/json")
     @ApiOperation(value = "Add a new designation", response = Designation.class)
     @ApiResponses(value = {
@@ -156,16 +180,11 @@ public class DesignationRoute {
             @ApiResponse(code = 404, message = "Designation not found"),
     })
     public ResponseEntity deleteById(@ApiParam(name = "id", value = "Designation's ID", example = "1") @PathVariable int id) {
-        try {
-            // Validate URL param ID
-            validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
-        } catch (BadRequestException e) {
-            // Return 400 if there are validation error
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        // Validate given ID
+        validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
 
-        // Find designation by ID
-        Designation designation = designationRepository.findById(id);
+        // Get designation ith the given ID
+        Designation designation = designationService.findById(id, true);
 
         // Return 404 if designation not found
         if (designation == null)

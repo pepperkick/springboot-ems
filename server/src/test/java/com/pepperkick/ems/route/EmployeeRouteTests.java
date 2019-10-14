@@ -437,10 +437,4 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isMethodNotAllowed());
     }
-
-    @Test
-    public void check() throws Exception {
-        mockMvc.perform(delete(path + "/9"));
-        mockMvc.perform(get(path + "/2")).andDo(print());
-    }
 }

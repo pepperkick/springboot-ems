@@ -1,7 +1,11 @@
 package com.pepperkick.ems.service;
 
 import com.pepperkick.ems.entity.Designation;
+import com.pepperkick.ems.entity.Employee;
+import com.pepperkick.ems.exception.BadRequestException;
+import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
+import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +14,12 @@ import java.util.List;
 @Service
 public class DesignationService {
     private final DesignationRepository designationRepository;
+    private final MessageHelper messageHelper;
 
     @Autowired
-    public DesignationService(DesignationRepository designationRepository) {
+    public DesignationService(DesignationRepository designationRepository, MessageHelper messageHelper) {
         this.designationRepository = designationRepository;
+        this.messageHelper = messageHelper;
 
         // Check if designation table is empty, if yes then fill with initial data
         List<Designation> designations = designationRepository.findAll();
@@ -28,6 +34,7 @@ public class DesignationService {
                 designationRepository.save(designation);
             }
         }
+
     }
 
     // Get designation level that is between two designations
@@ -57,5 +64,21 @@ public class DesignationService {
 
         // Return average of two designation levels if higher designation is found otherwise send highest designation level plus 1
         return flag ? (highest.getLevel() + higherDesignation.getLevel()) / 2 : higherDesignation.getLevel() + 1;
+    }
+
+    public Designation findById(int id) throws NotFoundException, BadRequestException {
+        return findById(id, false);
+    }
+
+    public Designation findById(int id, boolean notfound) throws NotFoundException, BadRequestException {
+        Designation designation = designationRepository.findById(id);
+
+        if (designation == null)
+            if (notfound)
+                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
+            else
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound", id));
+
+        return designation;
     }
 }
