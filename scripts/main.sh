@@ -2,7 +2,7 @@
 
 clear
 
-echo "Starting EMS Shell Script v1.0.1"
+echo "Starting EMS Shell Script v1.0.2"
 echo ""
 
 # Variables
@@ -346,6 +346,10 @@ newTestCase "Perform POST /employee"
 postOperation '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 1 }'
 id=$(echo "$body"| $jq ".id")
 
+if [ "$id" == "null" ] || [ "$id" == "" ]; then
+  id=$(echo "$body" | $jq ".employee.id")
+fi
+
 getByIdOperation "$id"
 title=$(echo "$body" | $jq ".name")
 nestedTitle=$(echo "$body" | $jq ".employee.name")
@@ -417,9 +421,13 @@ if [ "${test_flag[$test_num-1]}" == "0" ]; then
 else
   newTestCase "Check if it updates employee name"
   putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Manager", "managerId": 1, "replace": false }'
-  title=$(echo "$body" | $jq ".name")
   id=$(echo "$body" | $jq ".id")
+  title=$(echo "$body" | $jq ".name")
   nestedTitle=$(echo "$body" | $jq ".employee.name")
+
+  if [ "$id" == "null" ] || [ "$id" == "" ]; then
+    id=$(echo "$body" | $jq ".employee.id")
+  fi
 
   if [ "$title" == "\"Nick Fury\"" ] || [ "$nestedTitle" == "\"Nick Fury\"" ]; then
     printTestCase true
@@ -462,7 +470,7 @@ else
   managerId=$(echo "$body" | $jq ".manager.id")
   id=$(echo "$body" | $jq ".id")
 
-  if [ "$id" == "mull" ] || [ "$id" == "" ]; then
+  if [ "$id" == "null" ] || [ "$id" == "" ]; then
     id=$(echo "$body" | $jq ".employee.id")
   fi
 
