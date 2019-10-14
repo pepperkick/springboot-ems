@@ -6,8 +6,8 @@ import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.exception.BadRequestException;
-import com.pepperkick.ems.requestbody.EmployeePostBody;
-import com.pepperkick.ems.requestbody.EmployeePutBody;
+import com.pepperkick.ems.requestbody.EmployeeRequestPostBody;
+import com.pepperkick.ems.requestbody.EmployeeRequestPutBody;
 import com.pepperkick.ems.service.EmployeeService;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
@@ -82,7 +82,7 @@ public class EmployeeRoute {
         @ApiResponse(code = 201, message = "Successfully created new employee", response = Employee.class),
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
-    public ResponseEntity post(@ApiParam(value = "Information of new employee") @NotNull @RequestBody EmployeePostBody body) {
+    public ResponseEntity post(@ApiParam(value = "Information of new employee") @NotNull @RequestBody EmployeeRequestPostBody body) {
         try {
             // Validate POST body details
             body.validate(messageHelper);
@@ -189,17 +189,13 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
-        Employee employee;
+        // Validate given ID
+        validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
 
-        try {
-            validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
-            employee = employeeService.findById(id, true);
-        } catch (BadRequestException e) {
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (NotFoundException e) {
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        // Get employee ith the given ID
+        Employee employee; employee = employeeService.findById(id, true);
 
+        // Return employee
         return new ResponseEntity<Object>(employee, HttpStatus.OK);
     }
 
@@ -212,7 +208,7 @@ public class EmployeeRoute {
     })
     public ResponseEntity putById(
             @ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id,
-            @ApiParam(value = "Information of employee to update") @RequestBody EmployeePutBody body
+            @ApiParam(value = "Information of employee to update") @RequestBody EmployeeRequestPutBody body
     ) {
         try {
             // Validate URL param ID
@@ -397,18 +393,11 @@ public class EmployeeRoute {
             @ApiResponse(code = 404, message = "Employee not found"),
     })
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
-        Employee employee;
+        // Validate given ID
+        validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
 
-        try {
-            // Validate URL param ID
-            validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
-            // Get employee by ID equal to URL param ID
-            employee = employeeService.findById(id, true);
-        } catch (BadRequestException e) {
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (NotFoundException e) {
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        // Get employee ith the given ID
+        Employee employee; employee = employeeService.findById(id, true);
 
         // IF employee's designation is equal to main designation (Director) then return 400
         // Cannot delete employee with main designation (Director

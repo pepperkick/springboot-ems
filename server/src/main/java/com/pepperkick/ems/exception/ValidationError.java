@@ -1,6 +1,6 @@
 package com.pepperkick.ems.exception;
 
-public class ValidationError extends Exception {
+public class ValidationError extends RuntimeException {
     public String tag;
     public String code;
 

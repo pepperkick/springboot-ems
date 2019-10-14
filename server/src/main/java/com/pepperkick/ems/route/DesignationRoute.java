@@ -5,7 +5,7 @@ import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
-import com.pepperkick.ems.requestbody.DesignationPostBody;
+import com.pepperkick.ems.requestbody.DesignationRequestPostBody;
 import com.pepperkick.ems.service.DesignationService;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ResponseHelper;
@@ -70,7 +70,7 @@ public class DesignationRoute {
             @ApiResponse(code = 201, message = "Successfully created new designation"),
             @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
-    public ResponseEntity post(@ApiParam(value = "Information of new designation") @RequestBody DesignationPostBody body) {
+    public ResponseEntity post(@ApiParam(value = "Information of new designation") @RequestBody DesignationRequestPostBody body) {
         try {
             // Validate POST body details
             body.validate(messageHelper);

@@ -5,7 +5,7 @@ import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ValidatorHelper;
 
-public class EmployeeBody {
+public class EmployeeRequestBody {
     public static void validate(MessageHelper messageHelper, String name, String jobTitle) throws BadRequestException {
         validateName(messageHelper, name);
 

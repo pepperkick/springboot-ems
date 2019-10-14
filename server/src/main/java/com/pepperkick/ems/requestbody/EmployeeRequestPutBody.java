@@ -1,15 +1,12 @@
 package com.pepperkick.ems.requestbody;
 
-import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.exception.BadRequestException;
-import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
-import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "Details to update or replace employee")
-public class EmployeePutBody {
+public class EmployeeRequestPutBody {
     @ApiModelProperty(name = "name", value = "Name of the employee",example = "Captain America", position = 1)
     private String name;
 
@@ -24,9 +21,9 @@ public class EmployeePutBody {
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {
         if (replace) {
-            EmployeeBody.validate(messageHelper, name, jobTitle);
+            EmployeeRequestBody.validate(messageHelper, name, jobTitle);
         } else {
-            EmployeeBody.validateName(messageHelper, name);
+            EmployeeRequestBody.validateName(messageHelper, name);
             if ( this.name == null && this.jobTitle == null && this.managerId == -1)
                 throw new BadRequestException(
                     messageHelper.getMessage("error.route.employee.update.empty.body")

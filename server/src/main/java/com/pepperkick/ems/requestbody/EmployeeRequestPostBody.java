@@ -1,14 +1,12 @@
 package com.pepperkick.ems.requestbody;
 
 import com.pepperkick.ems.exception.BadRequestException;
-import com.pepperkick.ems.exception.ValidationError;
 import com.pepperkick.ems.util.MessageHelper;
-import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "Details to add new employee")
-public class EmployeePostBody {
+public class EmployeeRequestPostBody {
     @ApiModelProperty(name = "name", example = "Iron Man", value = "Name of the Employee", required = true, position = 1)
     private String name;
 
@@ -19,7 +17,7 @@ public class EmployeePostBody {
     private int managerId = -1;
 
     public void validate(MessageHelper messageHelper) throws BadRequestException {
-        EmployeeBody.validate(messageHelper, name, jobTitle);
+        EmployeeRequestBody.validate(messageHelper, name, jobTitle);
     }
 
     public String getName() {

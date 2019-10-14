@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cache;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -23,7 +25,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @ApiModelProperty(notes = "Employee's ID", position = 1, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(notes = "Employee's ID", position = 1)
     private Integer id;
 
     @Column(name = "NAME", length = 40)
@@ -36,7 +38,7 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     private String jobTitle;
 
     @OneToOne
-    @JoinColumn(name = "MANAGER", nullable = true)
+    @JoinColumn(name = "MANAGER")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @ApiModelProperty(notes = "Employee's Manager", position = 4)
@@ -46,11 +48,10 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @SortComparator(Employee.class)
-    @ApiModelProperty(notes = "Employee's Colleagues", position = 5, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(notes = "Employee's Colleagues", position = 5)
     private SortedSet<Employee> colleagues;
 
-    @OneToMany
-    @JoinColumn(name = "MANAGER")
+    @OneToMany(mappedBy = "manager")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties(value = {"manager", "colleagues", "subordinates"})
     @SortComparator(Employee.class)
@@ -90,12 +91,12 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
         return designation.getTitle();
     }
 
-    public void setJobTitle(String jobTitle) {
-//        this.jobTitle = jobTitle;
-    }
-
     public SortedSet<Employee> getSubordinates() {
         return subordinates;
+    }
+
+    public void setSubordinates(SortedSet<Employee> subordinates) {
+        this.subordinates = subordinates;
     }
 
     private SortedSet<Employee> getSubordinates(Employee e) {

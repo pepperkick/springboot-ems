@@ -61,14 +61,14 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     // Should fail with response code 404 due to empty employee list
     @Test
     public void shouldFailToGetEmployees() throws Exception {
-        for (int i = 0; i < 20; i++)
+        for (int i = 1; i < 20; i++)
             mockMvc.perform(delete(path + "/" + i));
         mockMvc.perform(delete(path + "/1"));
 
         mockMvc.
-                perform(get(path)).
-                andDo(print()).
-                andExpect(status().isNotFound());
+            perform(get(path)).
+            andDo(print()).
+            andExpect(status().isNotFound());
     }
 
     // GET /employee/${id}
@@ -256,7 +256,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(delete(path + "/10")).
             andDo(print()).
-            andExpect(status().isOk());
+            andExpect(status().isNoContent());
     }
 
     // Should DELETE with response code 200 and update subordinates manager
@@ -264,7 +264,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     public void shouldDeleteEmployeeAndUpdateSubordinates() throws Exception {
         mockMvc.
             perform(delete(path + "/2")).
-            andExpect(status().isOk());
+            andExpect(status().isNoContent());
 
         mockMvc.
             perform(get(path + "/5")).
@@ -303,7 +303,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         mockMvc.
             perform(delete(path +"/1")).
             andDo(print()).
-            andExpect(status().isOk());
+            andExpect(status().isNoContent());
     }
 
     // Should PUT with response code 200 and update employee name
@@ -323,6 +323,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     @Test
     public void shouldFailToPutAndUpdateManagerOfDirector() throws Exception {
         JSONObject body = new JSONObject();
+        body.put("name", "Black Panther");
         body.put("jobTitle", "Director");
         body.put("managerId", 2);
 
@@ -435,5 +436,11 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             perform(patch(path)).
             andDo(print()).
             andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    public void check() throws Exception {
+        mockMvc.perform(delete(path + "/9"));
+        mockMvc.perform(get(path + "/2")).andDo(print());
     }
 }

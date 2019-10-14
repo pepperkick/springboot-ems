@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "Details to add new designation")
-public class DesignationPostBody {
+public class DesignationRequestPostBody {
     @ApiModelProperty(name = "name", value = "Name of the designation", example = "Senior Manager", required = true, position = 1)
     private String name;
 
