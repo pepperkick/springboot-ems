@@ -348,8 +348,9 @@ id=$(echo "$body"| $jq ".id")
 
 getByIdOperation "$id"
 title=$(echo "$body" | $jq ".name")
+nestedTitle=$(echo "$body" | $jq ".employee.name")
 
-if [ "$title" == "\"Black Panther\"" ]; then
+if [ "$title" == "\"Black Panther\"" ] || [ "$nestedTitle" == "\"Black Panther\"" ]; then
   printTestCase true
 else
   printTestCase false
@@ -399,8 +400,9 @@ fi
 newTestCase "Perform PUT /employee/{id}"
 putByIdOperation 2 '{ "name": "Black Panther", "jobTitle": "Manager", "managerId": 1, "replace": true }'
 title=$(echo "$body" | $jq ".name")
+nestedTitle=$(echo "$body" | $jq ".employee.name")
 
-if [ "$title" == "\"Black Panther\"" ]; then
+if [ "$title" == "\"Black Panther\"" ] || [ "$nestedTitle" == "\"Black Panther\"" ]; then
   printTestCase true
 else
   printTestCase false
@@ -417,8 +419,9 @@ else
   putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Manager", "managerId": 1, "replace": false }'
   title=$(echo "$body" | $jq ".name")
   id=$(echo "$body" | $jq ".id")
+  nestedTitle=$(echo "$body" | $jq ".employee.name")
 
-  if [ "$title" == "\"Nick Fury\"" ]; then
+  if [ "$title" == "\"Nick Fury\"" ] || [ "$nestedTitle" == "\"Nick Fury\"" ]; then
     printTestCase true
   else
     printTestCase false
@@ -429,9 +432,10 @@ else
 
   newTestCase "Check if it updates employee designation"
   putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Lead", "managerId": 1, "replace": false }'
-  title=$(echo "$body" | $jq ".jobTitle")
+  jobTitle=$(echo "$body" | $jq ".jobTitle")
+  nestedJobTitle=$(echo "$body" | $jq ".employee.jobTitle")
 
-  if [ "$title" == "\"Lead\"" ]; then
+  if [ "$jobTitle" == "\"Lead\"" ] || [ "$nestedJobTitle" == "\"Lead\"" ]; then
     printTestCase true
   else
     printTestCase false
@@ -457,6 +461,10 @@ else
   putByIdOperation "$id" '{ "name": "Nick Fury", "jobTitle": "Lead", "replace": true }'
   managerId=$(echo "$body" | $jq ".manager.id")
   id=$(echo "$body" | $jq ".id")
+
+  if [ "$id" == "mull" ] || [ "$id" == "" ]; then
+    id=$(echo "$body" | $jq ".employee.id")
+  fi
 
   if [ "$managerId" == "4" ]; then
     printTestCase true
