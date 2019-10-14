@@ -95,10 +95,6 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
         return subordinates;
     }
 
-    public void setSubordinates(SortedSet<Employee> subordinates) {
-        this.subordinates = subordinates;
-    }
-
     private SortedSet<Employee> getSubordinates(Employee e) {
         SortedSet<Employee> temp = new TreeSet<>(subordinates);
         temp.remove(e);

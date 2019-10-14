@@ -70,14 +70,14 @@ public class DesignationService {
         return findById(id, false);
     }
 
-    public Designation findById(int id, boolean notfound) throws NotFoundException, BadRequestException {
+    public Designation findById(int id, boolean badRequest) throws NotFoundException, BadRequestException {
         Designation designation = designationRepository.findById(id);
 
         if (designation == null)
-            if (notfound)
-                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
+            if (badRequest)
+                throw new BadRequestException(messageHelper.getMessage("error.route.designation.notfound", id));
             else
-                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound", id));
+                throw new NotFoundException(messageHelper.getMessage("error.route.designation.notfound", id));
 
         return designation;
     }

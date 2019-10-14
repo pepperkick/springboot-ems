@@ -26,14 +26,14 @@ public class EmployeeService {
         return findById(id, false);
     }
 
-    public Employee findById(int id, boolean notfound) throws NotFoundException, BadRequestException {
+    public Employee findById(int id, boolean badRequest) throws NotFoundException, BadRequestException {
         Employee employee = employeeRepository.findById(id);
 
         if (employee == null)
-            if (notfound)
-                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
-            else
+            if (badRequest)
                 throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound", id));
+            else
+                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
 
         return employee;
     }

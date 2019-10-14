@@ -193,7 +193,7 @@ public class EmployeeRoute {
         validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
 
         // Get employee ith the given ID
-        Employee employee; employee = employeeService.findById(id, true);
+        Employee employee; employee = employeeService.findById(id);
 
         // Return employee
         return new ResponseEntity<Object>(employee, HttpStatus.OK);
@@ -397,7 +397,7 @@ public class EmployeeRoute {
         validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
 
         // Get employee ith the given ID
-        Employee employee; employee = employeeService.findById(id, true);
+        Employee employee; employee = employeeService.findById(id);
 
         // IF employee's designation is equal to main designation (Director) then return 400
         // Cannot delete employee with main designation (Director

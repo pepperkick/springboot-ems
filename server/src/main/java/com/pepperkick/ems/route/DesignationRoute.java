@@ -75,14 +75,7 @@ public class DesignationRoute {
         validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
 
         // Get all designations ordered by level
-        List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
-
-        // If designation list is empty then return 404 error
-        if (designations.size() == 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.designation.notfound.list"),
-                    HttpStatus.NOT_FOUND
-            );
+        Designation designations = designationService.findById(id);
 
         // Return the designation list
         return new ResponseEntity<>(designations, HttpStatus.OK);
@@ -184,7 +177,7 @@ public class DesignationRoute {
         validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
 
         // Get designation ith the given ID
-        Designation designation = designationService.findById(id, true);
+        Designation designation = designationService.findById(id);
 
         // Return 404 if designation not found
         if (designation == null)
