@@ -4,6 +4,7 @@ import com.pepperkick.ems.Application;
 import com.pepperkick.ems.configuration.H2Configuration;
 import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.repository.DesignationRepository;
+import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.when;
 public class DesignationServiceTests {
     private DesignationRepository designationRepository;
     private DesignationService designationService;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private MessageHelper messageHelper;
@@ -26,7 +28,8 @@ public class DesignationServiceTests {
     @BeforeTest
     public void init() {
         designationRepository = mock(DesignationRepository.class);
-        designationService = new DesignationService(designationRepository, messageHelper);
+        employeeRepository = mock(EmployeeRepository.class);
+        designationService = new DesignationService(designationRepository, employeeRepository, messageHelper);
 
         Designation dummyDesignation = new Designation();
         dummyDesignation.setId(1);

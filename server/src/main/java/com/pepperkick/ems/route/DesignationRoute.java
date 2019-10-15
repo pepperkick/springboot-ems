@@ -53,13 +53,6 @@ public class DesignationRoute {
         // Get all designations ordered by level
         List<Designation> designations = designationRepository.findAllByOrderByLevelAsc();
 
-        // If designation list is empty then return 404 error
-        if (designations.size() == 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.designation.notfound.list"),
-                    HttpStatus.NOT_FOUND
-            );
-
         // Return the designation list
         return new ResponseEntity<>(designations, HttpStatus.OK);
     }
@@ -176,31 +169,10 @@ public class DesignationRoute {
         // Validate given ID
         validatorHelper.validateIdWithError(id, "error.route.designation.invalid.id");
 
-        // Get designation ith the given ID
-        Designation designation = designationService.findById(id);
+        // Delete designation by ID
+        designationService.deleteById(id);
 
-        // Return 404 if designation not found
-        if (designation == null)
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.designation.notfound"),
-                    HttpStatus.NOT_FOUND
-            );
-
-        // Find all employees with this designation
-        List<Employee> employees = employeeRepository.findEmployeeByDesignation(designation);
-
-        // If employee list is not empty then return 400
-        // Cannot delete designation while employees have this designation assigned to it
-        if (employees.size() != 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.designation.restriction.cannot_have_employee_assigned"),
-                    HttpStatus.BAD_REQUEST
-            );
-
-        // Delete the designation
-        designationRepository.delete(designation);
-
-        // Return the deleted designation
-        return new ResponseEntity<>(designation, HttpStatus.OK);
+        // Return the status
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

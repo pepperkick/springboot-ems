@@ -35,8 +35,6 @@ public class EmployeeRoute {
     private final ValidatorHelper validatorHelper;
     private final EmployeeService employeeService;
 
-    private Designation mainDesignation = null;
-
     @Autowired
     public EmployeeRoute(EmployeeRepository employeeRepository, DesignationRepository designationRepository, MessageHelper messageHelper, EmployeeService employeeService) {
         this.employeeRepository = employeeRepository;
@@ -44,12 +42,6 @@ public class EmployeeRoute {
         this.messageHelper = messageHelper;
         this.validatorHelper = new ValidatorHelper(messageHelper);
         this.employeeService = employeeService;
-    }
-
-    @PostConstruct
-    public void init() {
-        List<Designation> designations = designationRepository.findByLevel(1);
-        if (designations.size() == 1) mainDesignation = designations.get(0);
     }
 
     @GetMapping(produces = "application/json")
@@ -62,15 +54,8 @@ public class EmployeeRoute {
         // Get all employees
         List<Employee> employees = employeeRepository.findAll();
 
-        // If employee list is empty then return 404
-        if (employees.size() == 0)
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.notfound.list"),
-                    HttpStatus.NOT_FOUND
-            );
-
         // Sort the list according to designation and name
-        Collections.sort(employees, Employee::compareTo);
+        employees.sort(Employee::compareTo);
 
         // Return employee list
         return new ResponseEntity<>(employees, HttpStatus.OK);
@@ -93,7 +78,7 @@ public class EmployeeRoute {
 
         // If main designation (Director) not found then return 400
         // Cannot add new employees without checking the main designation
-        if (mainDesignation == null) {
+        if (employeeService.getMainDesignation() == null) {
             return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.notfound.main_designation"),
                     HttpStatus.BAD_REQUEST
@@ -110,9 +95,9 @@ public class EmployeeRoute {
                 HttpStatus.BAD_REQUEST
             );
         // Else check if designation is equal to main designation (Director)
-        else if (designation.equalsTo(mainDesignation)) {
+        else if (designation.equalsTo(employeeService.getMainDesignation())) {
             // Find all employees with main designation (Director)
-            List<Employee> employees = employeeRepository.findEmployeeByDesignation(mainDesignation);
+            List<Employee> employees = employeeRepository.findEmployeeByDesignation(employeeService.getMainDesignation());
 
             // If employee list is not empty then return 400
             // Cannot have more than one director
@@ -135,7 +120,7 @@ public class EmployeeRoute {
         if (body.getManagerId() == -1)
             // If designation is not equal to main designation then return 400
             // Any designation other then main designation (Director) must have a manager
-            if (!designation.equalsTo(mainDesignation))
+            if (!designation.equalsTo(employeeService.getMainDesignation()))
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.restriction.director.can_only_have_no_manager"),
                     HttpStatus.BAD_REQUEST
@@ -245,7 +230,7 @@ public class EmployeeRoute {
 
             // If designation is equal to main designation (Director) and PUT body managerID is present then return 400
             // Director cannot have a manager
-            if (designation.equalsTo(mainDesignation) && body.getManagerId() != -1)
+            if (designation.equalsTo(employeeService.getMainDesignation()) && body.getManagerId() != -1)
                 return ResponseHelper.createErrorResponseEntity(
                     messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"),
                     HttpStatus.BAD_REQUEST
@@ -256,7 +241,7 @@ public class EmployeeRoute {
 
             // If designation is not equal to main designation (Director) and manager not found then set manager is current employee's manager
             // Any designation other then main designation (Director) must have a manager
-            if (!designation.equalsTo(mainDesignation) && manager == null)
+            if (!designation.equalsTo(employeeService.getMainDesignation()) && manager == null)
                 manager = employee.getManager();
 
             // If manager is found and manager's designation level is less than new employee's designation level then return 400
@@ -326,7 +311,7 @@ public class EmployeeRoute {
 
                 // If designation is equal to main designation (Director) then return 400
                 // Cannot change designation of a employee with main designation (Director)
-                if (designation.equalsTo(mainDesignation))
+                if (designation.equalsTo(employeeService.getMainDesignation()))
                     return ResponseHelper.createErrorResponseEntity(
                         messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation"),
                         HttpStatus.BAD_REQUEST
@@ -396,35 +381,10 @@ public class EmployeeRoute {
         // Validate given ID
         validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
 
-        // Get employee ith the given ID
-        Employee employee; employee = employeeService.findById(id);
-
-        // IF employee's designation is equal to main designation (Director) then return 400
-        // Cannot delete employee with main designation (Director
-        if (employee.getDesignation().equalsTo(mainDesignation)) {
-            if (!employee.getSubordinates().isEmpty())
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.subordinates_not_empty"),
-                    HttpStatus.BAD_REQUEST
-                );
-        }
-
-        // If employee subordinates list is not empty
-        if (!employee.getSubordinates().isEmpty()) {
-            // Get employee with ID equal to current employee's manager ID
-            Employee manager = employee.getManager();
-
-            // Change manager of each subordinate of current employee with current employee's manager
-            employee.getSubordinates().forEach(object -> {
-                object.setManager(manager);
-                employeeRepository.save(object);
-            });
-        }
-
         // Delete employee
-        employeeRepository.delete(employee);
+        employeeService.deleteById(id);
 
-        // Return employee
+        // Return status
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

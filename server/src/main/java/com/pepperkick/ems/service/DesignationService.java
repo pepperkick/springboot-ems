@@ -5,8 +5,11 @@ import com.pepperkick.ems.entity.Employee;
 import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
+import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.util.MessageHelper;
+import com.pepperkick.ems.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +17,13 @@ import java.util.List;
 @Service
 public class DesignationService {
     private final DesignationRepository designationRepository;
+    private final EmployeeRepository employeeRepository;
     private final MessageHelper messageHelper;
 
     @Autowired
-    public DesignationService(DesignationRepository designationRepository, MessageHelper messageHelper) {
+    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, MessageHelper messageHelper) {
         this.designationRepository = designationRepository;
+        this.employeeRepository = employeeRepository;
         this.messageHelper = messageHelper;
 
         // Check if designation table is empty, if yes then fill with initial data
@@ -34,7 +39,6 @@ public class DesignationService {
                 designationRepository.save(designation);
             }
         }
-
     }
 
     // Get designation level that is between two designations
@@ -80,5 +84,22 @@ public class DesignationService {
                 throw new NotFoundException(messageHelper.getMessage("error.route.designation.notfound", id));
 
         return designation;
+    }
+
+    public void deleteById(int id) throws NotFoundException, BadRequestException {
+        // Get designation ith the given ID
+        Designation designation = findById(id);
+
+        // Find all employees with this designation
+        List<Employee> employees = employeeRepository.findEmployeeByDesignation(designation);
+
+        // If employee list is not empty then return 400
+        // Cannot delete designation while employees have this designation assigned to it
+        if (employees.size() != 0)
+            throw new BadRequestException(messageHelper.getMessage("error.route.designation.restriction.cannot_have_employee_assigned"));
+
+        // Delete the designation
+        designationRepository.delete(designation);
+
     }
 }
