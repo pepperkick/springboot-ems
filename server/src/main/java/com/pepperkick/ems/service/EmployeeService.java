@@ -32,11 +32,15 @@ public class EmployeeService {
         if (designations.size() == 1) mainDesignation = designations.get(0);
     }
 
-    public Employee findById(int id) throws NotFoundException, BadRequestException {
+    public Employee findById(int id) {
         return findById(id, false);
     }
 
-    public Employee findById(int id, boolean badRequest) throws NotFoundException, BadRequestException {
+    public Employee findById(int id, boolean badRequest) {
+        return findById(id, badRequest, "error.route.designation.notfound");
+    }
+
+    public Employee findById(int id, boolean badRequest, String tag) {
         // Find employee from repository by given ID
         Employee employee = employeeRepository.findById(id);
 
@@ -44,15 +48,15 @@ public class EmployeeService {
         if (employee == null)
             // Throw badRequest error if badRequest flag is true
             if (badRequest)
-                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound", id));
+                throw new BadRequestException(messageHelper.getMessage(tag, id));
             // Throw notFound error
             else
-                throw new NotFoundException(messageHelper.getMessage("error.route.employee.notfound", id));
+                throw new NotFoundException(messageHelper.getMessage(tag, id));
 
         return employee;
     }
 
-    public void deleteById(int id) throws NotFoundException, BadRequestException {
+    public void deleteById(int id) {
         // Get employee ith the given ID
         Employee employee = findById(id);
 
