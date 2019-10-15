@@ -21,6 +21,7 @@ public class DesignationServiceTests {
     private DesignationRepository designationRepository;
     private DesignationService designationService;
     private EmployeeRepository employeeRepository;
+    private EmployeeService employeeService;
 
     @Autowired
     private MessageHelper messageHelper;
@@ -29,7 +30,7 @@ public class DesignationServiceTests {
     public void init() {
         designationRepository = mock(DesignationRepository.class);
         employeeRepository = mock(EmployeeRepository.class);
-        designationService = new DesignationService(designationRepository, employeeRepository, messageHelper);
+        designationService = new DesignationService(designationRepository, employeeRepository, employeeService, messageHelper);
 
         Designation dummyDesignation = new Designation();
         dummyDesignation.setId(1);

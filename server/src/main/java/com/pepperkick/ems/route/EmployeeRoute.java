@@ -68,103 +68,14 @@ public class EmployeeRoute {
         @ApiResponse(code = 400, message = "Invalid post body or parameter")
     })
     public ResponseEntity post(@ApiParam(value = "Information of new employee") @NotNull @RequestBody EmployeeRequestPostBody body) {
-        try {
-            // Validate POST body details
-            body.validate(messageHelper);
-        } catch (BadRequestException e) {
-            // Return 400 if there are validation error
-            return ResponseHelper.createErrorResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        // Validate body
+        body.validate(messageHelper);
 
-        // If main designation (Director) not found then return 400
-        // Cannot add new employees without checking the main designation
-        if (employeeService.getMainDesignation() == null) {
-            return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.notfound.main_designation"),
-                    HttpStatus.BAD_REQUEST
-            );
-        }
-
-        // Find designation by POST body jobTitle
-        Designation designation = designationRepository.findByTitle(body.getJobTitle());
-
-        // If designation not found then return 400
-        if (designation == null)
-            return ResponseHelper.createErrorResponseEntity(
-                messageHelper.getMessage("error.route.employee.notfound.designation", body.getJobTitle()),
-                HttpStatus.BAD_REQUEST
-            );
-        // Else check if designation is equal to main designation (Director)
-        else if (designation.equalsTo(employeeService.getMainDesignation())) {
-            // Find all employees with main designation (Director)
-            List<Employee> employees = employeeRepository.findEmployeeByDesignation(employeeService.getMainDesignation());
-
-            // If employee list is not empty then return 400
-            // Cannot have more than one director
-            if (employees.size() != 0)
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.single"),
-                    HttpStatus.BAD_REQUEST
-                );
-
-            // If POST body managerId is present then return 400
-            // Employee with main designation (Director) cannot have a manager
-            if (body.getManagerId() != -1)
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"),
-                    HttpStatus.BAD_REQUEST
-                );
-        }
-
-        // If POST body managerId is not present
-        if (body.getManagerId() == -1)
-            // If designation is not equal to main designation then return 400
-            // Any designation other then main designation (Director) must have a manager
-            if (!designation.equalsTo(employeeService.getMainDesignation()))
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.director.can_only_have_no_manager"),
-                    HttpStatus.BAD_REQUEST
-                );
-
-        // Create a new employee
-        Employee newEmployee = new Employee();
-        newEmployee.setName(body.getName());
-        newEmployee.setDesignation(designation);
-
-        // If POST body managerId is present
-        if (body.getManagerId() != - 1) {
-            // Find employee with POST body managerID
-            Employee manager = employeeRepository.findById(body.getManagerId());
-
-            // If manager not found then return 400
-            if (manager == null)
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.notfound.manager", body.getManagerId()),
-                    HttpStatus.BAD_REQUEST
-                );
-            // Else if manager's designation level is less than new employee's designation level then return 400
-            // Manager's designation cannot be lower then it's subordinates
-            else if (manager.getDesignation().getLevel() >= designation.getLevel())
-                return ResponseHelper.createErrorResponseEntity(
-                    messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation",  designation.getTitle(), manager.getDesignation().getTitle()),
-                    HttpStatus.BAD_REQUEST
-                );
-
-            newEmployee.setManager(manager);
-        }
-
-        // Save the new employee
-        try {
-            newEmployee = employeeRepository.save(newEmployee);
-        } catch (DataIntegrityViolationException e) {
-            return ResponseHelper.createErrorResponseEntity(
-                messageHelper.getMessage("error.route.employee.db.constraint"),
-                HttpStatus.BAD_REQUEST
-            );
-        }
+        // Create new employee
+        Employee employee = employeeService.create(body);
 
         // Return the new employee
-        return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
+        return new ResponseEntity<>(employee, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")

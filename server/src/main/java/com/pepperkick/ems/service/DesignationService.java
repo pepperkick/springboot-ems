@@ -8,10 +8,8 @@ import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.requestbody.DesignationRequestPostBody;
 import com.pepperkick.ems.util.MessageHelper;
-import com.pepperkick.ems.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import sun.security.krb5.internal.crypto.Des;
 
@@ -21,12 +19,14 @@ import java.util.List;
 public class DesignationService {
     private final DesignationRepository designationRepository;
     private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
     private final MessageHelper messageHelper;
 
     @Autowired
-    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, MessageHelper messageHelper) {
+    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, EmployeeService employeeService, MessageHelper messageHelper) {
         this.designationRepository = designationRepository;
         this.employeeRepository = employeeRepository;
+        this.employeeService = employeeService;
         this.messageHelper = messageHelper;
 
         // Check if designation table is empty, if yes then fill with initial data
@@ -122,12 +122,12 @@ public class DesignationService {
         }
 
         // Create new designation
-        Designation mewDesignation = new Designation();
-        mewDesignation.setTitle(name);
+        Designation newDesignation = new Designation();
+        newDesignation.setTitle(name);
 
         // If no previous designation is present, set designation level to 1
         if (higher == -1)
-            mewDesignation.setLevel(1);
+            newDesignation.setLevel(1);
         // Else set a new designation level
         else {
             // Get designation with higher designation ID
@@ -135,20 +135,22 @@ public class DesignationService {
 
             // If equals is true then set new designation level equal to higher designation level
             if (equal)
-                mewDesignation.setLevel(higherDesignation.getLevel());
+                newDesignation.setLevel(higherDesignation.getLevel());
             // Else get a new level between higher designation level and next higher designation level
             else
-                mewDesignation.setLevel(getNewDesignationLevel(higherDesignation));
+                newDesignation.setLevel(getNewDesignationLevel(higherDesignation));
         }
 
         // Save the new designation
         try {
-            mewDesignation = designationRepository.save(mewDesignation);
+            newDesignation = designationRepository.save(newDesignation);
+            
+            if (higher == -1) employeeService.setMainDesignation(newDesignation);
         } catch (DataIntegrityViolationException e) {
             throw new BadRequestException(messageHelper.getMessage("error.route.designation.db.constraint"));
         }
 
-        return mewDesignation;
+        return newDesignation;
     }
 
     public void deleteById(int id) {
@@ -165,6 +167,5 @@ public class DesignationService {
 
         // Delete the designation
         designationRepository.delete(designation);
-
     }
 }
