@@ -338,7 +338,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation")
+                messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager")
             ));
     }
 

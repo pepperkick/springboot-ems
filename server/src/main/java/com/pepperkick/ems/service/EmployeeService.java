@@ -7,10 +7,9 @@ import com.pepperkick.ems.exception.NotFoundException;
 import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.requestbody.EmployeeRequestPostBody;
+import com.pepperkick.ems.requestbody.EmployeeRequestPutBody;
 import com.pepperkick.ems.util.MessageHelper;
-import com.pepperkick.ems.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -59,10 +58,10 @@ public class EmployeeService {
     }
 
     public Employee create(EmployeeRequestPostBody body) {
-        return create(body.getName(), body.getJobTitle(), body.getManagerId());
+        return create(body.getName(), body.getJobTitle(), body.getManagerId(), true);
     }
 
-    public Employee create(String name, String jobTitle, int managerId) {
+    public Employee create(String name, String jobTitle, int managerId, boolean save) {
         // Find designation by jobTitle
         Designation designation = designationRepository.findByTitle(jobTitle);
 
@@ -70,35 +69,43 @@ public class EmployeeService {
             throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound.designation", jobTitle));
 
         if (designation.equalsTo(mainDesignation)) {
-            List<Employee> employees = employeeRepository.findEmployeeByDesignation(mainDesignation);
+            if (save) {
+                List<Employee> employees = employeeRepository.findEmployeeByDesignation(mainDesignation);
 
-            // If employee list with main designation is not empty then return 400
-            // Cannot have more than one director
-            if (employees.size() != 0)
-                throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.single"));
+                // If employee list with main designation is not empty then return 400
+                // Cannot have more than one director
+                if (employees.size() != 0)
+                    throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.single"));
+            }
 
             // If managerId is present then return 400
             // Employee with main designation (Director) cannot have a manager
             if (managerId != -1)
                 throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"));
         } else {
+            // If managerId is not present then return 400
+            // Only director cannot have manager
             if (managerId == -1)
                 throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.can_only_have_no_manager"));
         }
 
         Employee manager = null;
-        if (managerId != -1)
+        if (managerId != -1) {
             // Find employee with managerId
             manager = findById(managerId, true, "error.route.employee.notfound.manager");
 
-        return create(name, designation, manager);
+            if (manager.getDesignation().compareByLevel(designation) >= 0)
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation", jobTitle, manager.getDesignation().getTitle()));
+        }
+
+        return create(name, designation, manager, save);
     }
 
-    public Employee create(String name, Designation designation, Employee manager) {
+    public Employee create(String name, Designation designation, Employee manager, boolean save) {
         // Check if manager is present
         if (manager != null) {
             // Check if manager designation is lower than new employee's designation
-            if (manager.getDesignation().compareTo(designation) >= 0) {
+            if (manager.getDesignation().compareByLevel(designation) >= 0) {
                 throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.manager.cannot_have_lower_designation",  designation.getTitle(), manager.getDesignation().getTitle()));
             }
         }
@@ -109,7 +116,86 @@ public class EmployeeService {
         employee.setDesignation(designation);
         employee.setManager(manager);
 
+        return save ? employeeRepository.save(employee) : employee;
+    }
+
+    public Employee put(int id, EmployeeRequestPutBody body) {
+        Employee employee = findById(id);
+
+        if (body.isReplace())
+            return replace(employee, body.getName(), body.getJobTitle(), body.getManagerId());
+        else
+            return update(employee, body.getName(), body.getJobTitle(), body.getManagerId());
+    }
+
+    public Employee update(Employee employee, String title, String jobTitle, int managerId) {
+        if (title != null) {
+            // Update employee name
+            employee.setName(title);
+        }
+
+        if (jobTitle != null) {
+            // Find designation by jobTitle
+            Designation designation = designationRepository.findByTitle(jobTitle);
+
+            // If designation is null
+            if (designation == null)
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound.designation", jobTitle));
+
+            // If employee's designation is equal to main designation (Director) and designation is updated then return 400
+            // Cannot change designation of a employee with main designation (Director)
+            if (employee.getDesignation().equalsTo(mainDesignation)) {
+                if (!designation.equalsTo(mainDesignation))
+                    throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.cannot_change_designation"));
+
+                if (managerId != -1)
+                    throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.cannot_have_manager"));
+            }
+
+            // Check if designation is lower than any designation of subordinate
+            if (isDesignationHigherOrLowerThanSubordinateDesignation(designation, employee, false))
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", jobTitle));
+
+            // Update employee designation
+            employee.setDesignation(designation);
+        }
+
+        if (managerId != -1) {
+            // Find employee with ID equal to PUT body managerID
+            Employee manager = findById(managerId, true, "error.route.employee.notfound.manager");
+
+            // If manager's designation level is less than current employee designation level then return 400
+            // Manager's designation level cannot be lower than it's subordinates
+            if (manager.getDesignation().compareByLevel(employee.getDesignation()) >= 0)
+                throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", jobTitle));
+
+            // Update employee manager
+            employee.setManager(manager);
+        }
+
+        // Save updated employee
         return employeeRepository.save(employee);
+    }
+
+    public Employee replace(Employee employee, String name, String jobTitle, int managerId) {
+        // Check if managerId is present
+        if (managerId == -1 && employee.getManager() != null)
+            // Set managerId to current employee's manager
+            managerId = employee.getManager().getId();
+
+        // Create new employee
+        Employee newEmployee = create(name, jobTitle, managerId, false);
+
+        // Check if designation is lower than any designation of subordinate
+        if (isDesignationHigherOrLowerThanSubordinateDesignation(newEmployee.getDesignation(), employee, false))
+            throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", jobTitle));
+
+        // Replace employee
+        newEmployee = employeeRepository.save(newEmployee);
+        changeManagerOfSubordinates(employee, newEmployee);
+        employeeRepository.delete(employee);
+
+        return newEmployee;
     }
 
     public void deleteById(int id) {
@@ -137,6 +223,43 @@ public class EmployeeService {
 
         // Delete employee
         employeeRepository.delete(employee);
+    }
+
+    public boolean isDesignationHigherOrLowerThanSubordinateDesignation(Designation designation, Employee employee, boolean isHigher) {
+        // If employee's subordinates list is not empty
+        if (employee.getSubordinates().size() > 0) {
+            // Get current employee's designation
+            Designation highest = getHighestOrLowestSubordinateDesignation(employee, isHigher);
+
+            // If current designation level is lower then highest subordinate designation level then return 400
+            // Employee designation cannot be lower than it's subordinates
+            return designation.compareByLevel(highest) > 0;
+        }
+
+        return true;
+    }
+
+    public Designation getHighestOrLowestSubordinateDesignation(Employee employee, boolean isHighest) {
+        // Get current employee's designation
+        Designation compare = employee.getDesignation();
+
+        // Check designation of each subordinate
+        for (Employee sub : employee.getSubordinates()) {
+            if (isHighest && sub.getDesignation().compareByLevel(compare) > 0)
+                compare = sub.getDesignation();
+            if (!isHighest && sub.getDesignation().compareByLevel(compare) < 0)
+                compare = sub.getDesignation();
+        }
+
+        return compare;
+    }
+
+    public void changeManagerOfSubordinates(Employee employee, Employee manager) {
+        // Change manager of old employee's subordinates
+        for (Employee subordinate : employee.getSubordinates()) {
+            subordinate.setManager(manager);
+            employeeRepository.save(subordinate);
+        }
     }
 
     public Designation getMainDesignation() { return mainDesignation; }
