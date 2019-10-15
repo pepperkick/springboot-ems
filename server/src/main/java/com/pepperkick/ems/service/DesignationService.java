@@ -40,6 +40,7 @@ public class DesignationService {
                 designation.setTitle(titles[i]);
                 designation.setLevel(levels[i]);
                 designationRepository.save(designation);
+                if (i == 0) employeeService.setMainDesignation(designation);
             }
         }
     }

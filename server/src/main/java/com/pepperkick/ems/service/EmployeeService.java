@@ -62,6 +62,9 @@ public class EmployeeService {
     }
 
     public Employee create(String name, String jobTitle, int managerId, boolean save) {
+        if (mainDesignation == null)
+            throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound.main_designation"));
+
         // Find designation by jobTitle
         Designation designation = designationRepository.findByTitle(jobTitle);
 
@@ -153,7 +156,7 @@ public class EmployeeService {
             }
 
             // Check if designation is lower than any designation of subordinate
-            if (isDesignationHigherOrLowerThanSubordinateDesignation(designation, employee, false))
+            if (isDesignationHigherOrLowerThanSubordinateDesignation(designation, employee, true))
                 throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.subordinate.cannot_have_higher_designation", jobTitle));
 
             // Update employee designation
