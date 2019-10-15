@@ -460,7 +460,7 @@ else
     printTestCase true
   else
     printTestCase false
-    echo "Response name should be \"4\" but found $title"
+    echo "Response name should be \"4\" but found $managerId"
     echo "Response body: $body"
     echo ""
   fi
