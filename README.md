@@ -3,6 +3,8 @@
 A Spring Boot project for Employee Management System
 
 ## Table of Contents
+- [Validation Script](#validation-script)
+- [Docker](#docker)
 - [Database](#database)
     - [Designation](#designation)
     - [Employee](#employee)
@@ -10,9 +12,63 @@ A Spring Boot project for Employee Management System
     - [Designation](#designation)
     - [Employee](#employee)
 - [API](#api)
-- [Validation Script](#validation-script)
-- [Docker](#docker)
     
+## Validation Script
+
+### Setup
+- Download JQ from [here](https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe)
+- Copy exe file to the GitBash folder (Example: `C:\Users\<username>\AppData\Local\Programs\Git`)
+
+### Run
+```
+git-bash
+./main.sh
+```
+
+### Environment Variables
+
+- **SERVER_HOST**: Host of server (Default: localhost)
+- **SERVER_PORT**: Port of server (Default: 8080)
+- **SERVER_API_PREFIX**: Prefix of server API (Default: /api/v1)
+
+## Docker
+
+### Setup
+
+Download docker from [here](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe)
+
+Version: 2.0.0.3
+
+### Uninstall
+
+- Uninstall docker for desktop (Leave it running for 15 mins)
+- If the process is stuck, force close it from task manager
+- Open `regedit` from start
+- Remove the following path from registry (Could be different)
+```
+Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Docker for Windows
+```
+
+### Environment Variables
+
+- **PROFILE**: Spring Boot profile to run in (Default: development)
+- **MYSQL_HOST**: MySQL Database Host (Default: mysql)
+- **MYSQL_PORT**: MySQL Database Port (Default: 3306)
+- **MYSQL_USERNAME**: MySQL Username (Default: root)
+- **MYSQL_PASSWORD**: MySQL Password (Default: root)
+- **MYSQL_DATABASE**: MySQL Database name to use (Default: ems)
+
+
+## Kubernetes
+
+### Setup
+- Install nginx-ingress
+
+#### Deployment
+```
+kubectl apply -f https://raw.githubusercontent.com/pepperkick/springboot-ems/master/deployment.yaml
+```
+
 ## Database
 
 #### Designation
@@ -447,38 +503,3 @@ Response
 ```
 OK
 ```
-
-## Validation Script
-
-### Setup
-- Download JQ from [here](https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe)
-- Copy exe file to the GitBash folder (Example: `C:\Users\<username>\AppData\Local\Programs\Git`)
-
-### Run
-```
-git-bash
-./main.sh
-```
-
-### Environment Variables
-
-- **SERVER_HOST**: Host of server (Default: localhost)
-- **SERVER_PORT**: Port of server (Default: 8080)
-- **SERVER_API_PREFIX**: Prefix of server API (Default: /api/v1)
-
-## Docker
-
-### Setup
-
-Download docker from [here](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe)
-
-Version: 2.0.0.3
-
-### Environment Variables
-
-- **PROFILE**: Spring Boot profile to run in (Default: development)
-- **MYSQL_HOST**: MySQL Database Host (Default: mysql)
-- **MYSQL_PORT**: MySQL Database Port (Default: 3306)
-- **MYSQL_USERNAME**: MySQL Username (Default: root)
-- **MYSQL_PASSWORD**: MySQL Password (Default: root)
-- **MYSQL_DATABASE**: MySQL Database name to use (Default: ems)
