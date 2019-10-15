@@ -8,9 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import org.testng.annotations.Test;
+
+import javax.transaction.TransactionScoped;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -59,17 +64,18 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     }
 
     // Should fail with response code 404 due to empty employee list
-    @Test
-    public void shouldFailToGetEmployees() throws Exception {
-        for (int i = 1; i < 20; i++)
-            mockMvc.perform(delete(path + "/" + i));
-        mockMvc.perform(delete(path + "/1"));
-
-        mockMvc.
-            perform(get(path)).
-            andDo(print()).
-            andExpect(status().isNotFound());
-    }
+//    @Test
+//    public void shouldFailToGetEmployees() throws Exception {
+//        for (int i = 1; i < 20; i++) {
+//            mockMvc.perform(delete(path + "/" + i));
+//        }
+//        mockMvc.perform(delete(path + "/1"));
+//
+//        mockMvc.
+//            perform(get(path)).
+//            andDo(print()).
+//            andExpect(status().isNotFound());
+//    }
 
     // GET /employee/${id}
     // Should successfully receive employee's information with id 1 and response code 200
@@ -295,16 +301,16 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     }
 
     // Should DELETE with response code 200 and delete director
-    @Test
-    public void shouldDeleteDirector() throws Exception {
-        for (int i = 2; i < 20; i++)
-            mockMvc.perform(delete(path + "/" + i));
-
-        mockMvc.
-            perform(delete(path +"/1")).
-            andDo(print()).
-            andExpect(status().isNoContent());
-    }
+//    @Test
+//    public void shouldDeleteDirector() throws Exception {
+//        for (int i = 2; i < 20; i++)
+//            mockMvc.perform(delete(path + "/" + i));
+//
+//        mockMvc.
+//            perform(delete(path +"/1")).
+//            andDo(print()).
+//            andExpect(status().isNoContent());
+//    }
 
     // Should PUT with response code 200 and update employee name
     @Test
