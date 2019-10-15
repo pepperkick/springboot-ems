@@ -6,7 +6,9 @@ import com.pepperkick.ems.util.MessageHelper;
 import com.pepperkick.ems.util.ValidatorHelper;
 
 public class EmployeeRequestBody {
-    public static void validate(MessageHelper messageHelper, String name, String jobTitle) throws BadRequestException {
+    private EmployeeRequestBody () {}
+
+    public static void validate(MessageHelper messageHelper, String name, String jobTitle) {
         validateName(messageHelper, name);
 
         if (jobTitle == null || jobTitle.compareTo("") == 0)
@@ -15,7 +17,7 @@ public class EmployeeRequestBody {
             );
     }
 
-    public static void validateName(MessageHelper messageHelper, String name) throws BadRequestException {
+    public static void validateName(MessageHelper messageHelper, String name) {
         try {
             ValidatorHelper.validateName(name);
         } catch (ValidationError e) {
@@ -36,6 +38,10 @@ public class EmployeeRequestBody {
                 case "tooShort":
                     throw new BadRequestException(
                             messageHelper.getMessage("error.route.employee.param.name.too_short")
+                    );
+                default:
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.unknown_error")
                     );
             }
         }

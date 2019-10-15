@@ -13,7 +13,7 @@ public class ValidatorHelper {
         this.messageHelper = messageHelper;
     }
 
-    public void validateIdWithError(int id, String tag) throws BadRequestException {
+    public void validateIdWithError(int id, String tag) {
         try {
             validateId(id);
         } catch (ValidationError e) {
@@ -23,12 +23,12 @@ public class ValidatorHelper {
         }
     }
 
-    private static void validateId(int id) throws ValidationError {
+    private static void validateId(int id) {
         if (id < 0)
             throw new ValidationError("id", "negative");
     }
 
-    public static void validateName(String name) throws ValidationError {
+    public static void validateName(String name) {
         if (name == null)
             throw new ValidationError("name", "null");
 

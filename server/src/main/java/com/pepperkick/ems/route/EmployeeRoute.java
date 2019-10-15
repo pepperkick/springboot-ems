@@ -1,26 +1,16 @@
 package com.pepperkick.ems.route;
 
-import com.pepperkick.ems.entity.Designation;
 import com.pepperkick.ems.entity.Employee;
-import com.pepperkick.ems.exception.NotFoundException;
-import com.pepperkick.ems.repository.DesignationRepository;
 import com.pepperkick.ems.repository.EmployeeRepository;
-import com.pepperkick.ems.exception.BadRequestException;
 import com.pepperkick.ems.requestbody.EmployeeRequestPostBody;
 import com.pepperkick.ems.requestbody.EmployeeRequestPutBody;
 import com.pepperkick.ems.service.EmployeeService;
 import com.pepperkick.ems.util.MessageHelper;
-import com.pepperkick.ems.util.ResponseHelper;
 import com.pepperkick.ems.util.ValidatorHelper;
 import io.swagger.annotations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -28,17 +18,15 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/api/v1/employees")
 public class EmployeeRoute {
-    private final Logger logger = LoggerFactory.getLogger(EmployeeRepository.class);
+    private static final String TAG_INVALID_ID = "error.route.employee.invalid.id";
     private final EmployeeRepository employeeRepository;
-    private final DesignationRepository designationRepository;
     private final MessageHelper messageHelper;
     private final ValidatorHelper validatorHelper;
     private final EmployeeService employeeService;
 
     @Autowired
-    public EmployeeRoute(EmployeeRepository employeeRepository, DesignationRepository designationRepository, MessageHelper messageHelper, EmployeeService employeeService) {
+    public EmployeeRoute(EmployeeRepository employeeRepository, MessageHelper messageHelper, EmployeeService employeeService) {
         this.employeeRepository = employeeRepository;
-        this.designationRepository = designationRepository;
         this.messageHelper = messageHelper;
         this.validatorHelper = new ValidatorHelper(messageHelper);
         this.employeeService = employeeService;
@@ -86,7 +74,7 @@ public class EmployeeRoute {
     })
     public ResponseEntity getById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         // Validate given ID
-        validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
+        validatorHelper.validateIdWithError(id, TAG_INVALID_ID);
 
         // Get employee ith the given ID
         Employee employee; employee = employeeService.findById(id);
@@ -107,7 +95,7 @@ public class EmployeeRoute {
             @ApiParam(value = "Information of employee to update") @RequestBody EmployeeRequestPutBody body
     ) {
         // Validate URL param ID
-        validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
+        validatorHelper.validateIdWithError(id, TAG_INVALID_ID);
         // Validate PUT body details
         body.validate(messageHelper);
 
@@ -132,7 +120,7 @@ public class EmployeeRoute {
     })
     public ResponseEntity deleteById(@ApiParam(name = "id", example = "1", value = "Employee's ID", required = true) @PathVariable int id) {
         // Validate given ID
-        validatorHelper.validateIdWithError(id, "error.route.employee.invalid.id");
+        validatorHelper.validateIdWithError(id, TAG_INVALID_ID);
 
         // Delete employee
         employeeService.deleteById(id);

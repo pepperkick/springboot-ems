@@ -6,11 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.Cache;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
@@ -114,12 +112,22 @@ public class Employee implements Comparable<Employee>, Comparator<Employee> {
         if (manager != null)
             return manager.getSubordinates(this);
 
-        return null;
+        return new TreeSet<>();
     }
 
     @Override
     public int compareTo(Employee o) {
         return compare(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 
     @Override

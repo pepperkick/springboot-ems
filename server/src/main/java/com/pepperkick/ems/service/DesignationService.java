@@ -11,7 +11,6 @@ import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import sun.security.krb5.internal.crypto.Des;
 
 import java.util.List;
 
@@ -31,7 +30,7 @@ public class DesignationService {
 
         // Check if designation table is empty, if yes then fill with initial data
         List<Designation> designations = designationRepository.findAll();
-        if (designations.size() == 0) {
+        if (designations.isEmpty()) {
             String[] titles = { "Director", "Manager", "Lead", "Developer", "DevOps", "QA", "Intern" };
             float[] levels = { 1, 2, 3, 4, 4, 4, 5 };
 
@@ -40,7 +39,7 @@ public class DesignationService {
                 designation.setTitle(titles[i]);
                 designation.setLevel(levels[i]);
                 designationRepository.save(designation);
-                if (i == 0) employeeService.setMainDesignation(designation);
+                if (i == 0 && employeeService != null) employeeService.setMainDesignation(designation);
             }
         }
     }
@@ -86,13 +85,32 @@ public class DesignationService {
         Designation designation = designationRepository.findById(id);
 
         // If employee is null
-        if (designation == null)
+        if (designation == null) {
             // Throw badRequest error if badRequest flag is true
-            if (badRequest)
+            if (badRequest) {
                 throw new BadRequestException(messageHelper.getMessage(tag, id));
             // Throw notFound error
-            else
+            } else {
                 throw new NotFoundException(messageHelper.getMessage(tag, id));
+            }
+        }
+
+        return designation;
+    }
+
+    public Designation findByTitle(String title, boolean badRequest, String tag) {
+        Designation designation = designationRepository.findByTitle(title);
+
+        // If employee is null
+        if (designation == null) {
+            // Throw badRequest error if badRequest flag is true
+            if (badRequest) {
+                throw new BadRequestException(messageHelper.getMessage(tag, title));
+                // Throw notFound error
+            } else {
+                throw new NotFoundException(messageHelper.getMessage(tag, title));
+            }
+        }
 
         return designation;
     }
@@ -109,7 +127,7 @@ public class DesignationService {
 
             // If designation list is not empty then return 400 error
             // Higher designation cannot be empty if there are existing designations
-            if (designations.size() != 0)
+            if (designations.isEmpty())
                 throw new BadRequestException(messageHelper.getMessage("error.route.designation.empty.param.higher"));
         }
 
@@ -163,10 +181,18 @@ public class DesignationService {
 
         // If employee list is not empty then return 400
         // Cannot delete designation while employees have this designation assigned to it
-        if (employees.size() != 0)
+        if (employees.isEmpty())
             throw new BadRequestException(messageHelper.getMessage("error.route.designation.restriction.cannot_have_employee_assigned"));
 
         // Delete the designation
         designationRepository.delete(designation);
+    }
+
+    public Designation getMainDesignation() {
+        List<Designation> designations = designationRepository.findByLevel(1);
+        if (designations.size() == 1)
+            return designations.get(0);
+
+        return null;
     }
 }

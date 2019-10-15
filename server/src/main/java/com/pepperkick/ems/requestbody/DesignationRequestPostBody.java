@@ -18,7 +18,7 @@ public class DesignationRequestPostBody {
     @ApiModelProperty(name = "equals", value = "Set new designation level equal to higher designation level", example = "false", position = 3)
     private boolean equals;
 
-    public void validate(MessageHelper messageHelper) throws BadRequestException {
+    public void validate(MessageHelper messageHelper) {
         try {
             ValidatorHelper.validateName(this.name);
         } catch (ValidationError e) {
@@ -39,6 +39,10 @@ public class DesignationRequestPostBody {
                 case "tooShort":
                     throw new BadRequestException(
                             messageHelper.getMessage("error.route.designation.param.name.too_short")
+                    );
+                default:
+                    throw new BadRequestException(
+                            messageHelper.getMessage("error.route.unknown_error")
                     );
             }
         }

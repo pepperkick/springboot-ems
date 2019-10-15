@@ -4,7 +4,9 @@ import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class ResponseHelper {
+class ResponseHelper {
+    private ResponseHelper() {}
+
     public static JSONObject createErrorResponseJson(String message, HttpStatus status) {
         JSONObject res = new JSONObject();
         res.put("message", message);

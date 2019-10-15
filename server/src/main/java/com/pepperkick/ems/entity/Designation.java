@@ -1,7 +1,6 @@
 package com.pepperkick.ems.entity;
 
 import io.swagger.annotations.ApiModelProperty;
-import sun.security.krb5.internal.crypto.Des;
 
 import javax.persistence.*;
 
@@ -46,12 +45,20 @@ public class Designation implements Comparable<Designation> {
         this.level = level;
     }
 
-    public boolean equalsTo(Designation o) { return compareTo(o) == 0; }
-
     public float compareByLevel(Designation o) { return this.getLevel() - o.getLevel(); }
 
     @Override
     public int compareTo(Designation o) {
         return this.getId() - o.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 }

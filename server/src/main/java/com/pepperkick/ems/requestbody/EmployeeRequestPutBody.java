@@ -19,7 +19,7 @@ public class EmployeeRequestPutBody {
     @ApiModelProperty(name = "replace", value = "Should the employee be replaced with a new employee with the given information", example = "true", position = 4)
     private boolean replace = false;
 
-    public void validate(MessageHelper messageHelper) throws BadRequestException {
+    public void validate(MessageHelper messageHelper) {
         if (replace) {
             EmployeeRequestBody.validate(messageHelper, name, jobTitle);
         } else {
