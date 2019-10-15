@@ -5,6 +5,7 @@ A Spring Boot project for Employee Management System
 ## Table of Contents
 - [Validation Script](#validation-script)
 - [Docker](#docker)
+- [Kubernetes](#kubernetes)
 - [Database](#database)
     - [Designation](#designation)
     - [Employee](#employee)
