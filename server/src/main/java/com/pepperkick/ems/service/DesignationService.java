@@ -9,7 +9,6 @@ import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.requestbody.DesignationRequestPostBody;
 import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +18,12 @@ import java.util.List;
 public class DesignationService {
     private final DesignationRepository designationRepository;
     private final EmployeeRepository employeeRepository;
-    private final EmployeeService employeeService;
     private final MessageHelper messageHelper;
 
     @Autowired
-    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, @Lazy EmployeeService employeeService, MessageHelper messageHelper) {
+    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, MessageHelper messageHelper) {
         this.designationRepository = designationRepository;
         this.employeeRepository = employeeRepository;
-        this.employeeService = employeeService;
         this.messageHelper = messageHelper;
 
         // Check if designation table is empty, if yes then fill with initial data
@@ -40,7 +37,6 @@ public class DesignationService {
                 designation.setTitle(titles[i]);
                 designation.setLevel(levels[i]);
                 designationRepository.save(designation);
-                if (i == 0 && employeeService != null) employeeService.setMainDesignation(designation);
             }
         }
     }
@@ -164,8 +160,6 @@ public class DesignationService {
         // Save the new designation
         try {
             newDesignation = designationRepository.save(newDesignation);
-            
-            if (higher == -1) employeeService.setMainDesignation(newDesignation);
         } catch (DataIntegrityViolationException e) {
             throw new BadRequestException(messageHelper.getMessage("error.route.designation.db.constraint"));
         }
