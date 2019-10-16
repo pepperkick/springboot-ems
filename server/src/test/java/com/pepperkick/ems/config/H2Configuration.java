@@ -1,4 +1,4 @@
-package com.pepperkick.ems.configuration;
+package com.pepperkick.ems.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;

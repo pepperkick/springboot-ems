@@ -1,7 +1,7 @@
 package com.pepperkick.ems.route;
 
 import com.pepperkick.ems.Application;
-import com.pepperkick.ems.configuration.H2Configuration;
+import com.pepperkick.ems.config.H2Configuration;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

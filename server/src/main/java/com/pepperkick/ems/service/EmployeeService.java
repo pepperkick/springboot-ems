@@ -64,8 +64,7 @@ public class EmployeeService {
     }
 
     public Employee create(String name, String jobTitle, int managerId, boolean save) {
-        if (mainDesignation == null)
-            throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound.main_designation"));
+        checkMainDesignation();
 
         // Find designation by jobTitle
         Designation designation = designationService.findByTitle(jobTitle, true, "error.route.employee.notfound.designation");
@@ -128,6 +127,8 @@ public class EmployeeService {
     }
 
     public Employee update(Employee employee, String title, String jobTitle, int managerId) {
+        checkMainDesignation();
+
         // Update employee name
         employee.setName(title != null ? title : employee.getName());
 
@@ -192,6 +193,8 @@ public class EmployeeService {
     }
 
     public void deleteById(int id) {
+        checkMainDesignation();
+
         // Get employee ith the given ID
         Employee employee = findById(id);
 
@@ -253,5 +256,9 @@ public class EmployeeService {
         }
     }
 
-    void setMainDesignation(Designation designation) { this.mainDesignation = designation; }
+    public void checkMainDesignation() {
+        mainDesignation = designationService.getMainDesignation();
+        if (mainDesignation == null)
+            throw new BadRequestException(messageHelper.getMessage("error.route.employee.notfound.main_designation"));
+    }
 }

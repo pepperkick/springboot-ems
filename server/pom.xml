@@ -42,10 +42,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
@@ -96,6 +92,15 @@
 			<version>RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.cdimascio</groupId>
+			<artifactId>java-dotenv</artifactId>
+			<version>5.1.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -119,7 +124,7 @@
 							<arguments>
 								<argument>build</argument>
 								<argument>--tag</argument>
-								<argument>ems</argument>
+								<argument>pepperkick/ems:${project.version}</argument>
 								<argument>..</argument>
 							</arguments>
 						</configuration>
