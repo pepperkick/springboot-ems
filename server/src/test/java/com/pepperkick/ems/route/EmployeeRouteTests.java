@@ -210,14 +210,13 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
         JSONObject body = new JSONObject();
         body.put("name", "Black Panther");
         body.put("jobTitle", "Director");
-        body.put("managerId", 1);
 
         mockMvc.
             perform(post(path).content(String.valueOf(body)).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)).
             andDo(print()).
             andExpect(status().isBadRequest()).
             andExpect(jsonPath("$.message").value(
-                "Only one director can be present"
+                messageHelper.getMessage("error.route.employee.restriction.director.single")
             ));
     }
 
@@ -291,6 +290,7 @@ public class EmployeeRouteTests extends AbstractTransactionalTestNGSpringContext
     // Should fail DELETE with response 400 due to restriction of unable to delete director with subordinates
     @Test
     public void shouldFailToDeleteDirector() throws Exception {
+        mockMvc.perform(get(path)).andDo(print());
         mockMvc.
             perform(delete(path + "/1").accept(MediaType.APPLICATION_JSON)).
             andDo(print()).

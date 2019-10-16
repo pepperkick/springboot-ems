@@ -59,6 +59,16 @@ public class Designation implements Comparable<Designation> {
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof Designation)) {
+            return false;
+        }
+
+        Designation designation = (Designation) obj;
+
+        return this.getId().equals(designation.getId());
     }
 }

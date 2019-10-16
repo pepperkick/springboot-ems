@@ -9,6 +9,7 @@ import com.pepperkick.ems.requestbody.EmployeeRequestPostBody;
 import com.pepperkick.ems.requestbody.EmployeeRequestPutBody;
 import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class EmployeeService {
     private Designation mainDesignation;
 
     @Autowired
-    public EmployeeService(EmployeeRepository employeeRepository, DesignationService designationService, MessageHelper messageHelper) {
+    public EmployeeService(EmployeeRepository employeeRepository, @Lazy DesignationService designationService, MessageHelper messageHelper) {
         this.employeeRepository = employeeRepository;
         this.designationService = designationService;
         this.messageHelper = messageHelper;
@@ -76,7 +77,7 @@ public class EmployeeService {
 
                 // If employee list with main designation is not empty then return 400
                 // Cannot have more than one director
-                if (employees.isEmpty())
+                if (!employees.isEmpty())
                     throw new BadRequestException(messageHelper.getMessage("error.route.employee.restriction.director.single"));
             }
 
@@ -217,21 +218,21 @@ public class EmployeeService {
 
     public boolean isDesignationHigherOrLowerThanSubordinateDesignation(Designation designation, Employee employee, boolean isHigher) {
         // If employee's subordinates list is not empty
-        if (employee.getSubordinates().isEmpty()) {
+        if (!employee.getSubordinates().isEmpty()) {
             // Get current employee's designation
             Designation highest = getHighestOrLowestSubordinateDesignation(employee, isHigher);
 
             // If current designation level is lower then highest subordinate designation level then return 400
             // Employee designation cannot be lower than it's subordinates
-            return designation.compareByLevel(highest) > 0;
+            return isHigher ? designation.compareByLevel(highest) <= 0 : designation.compareByLevel(highest) >= 0 ;
         }
 
-        return true;
+        return false;
     }
 
     public Designation getHighestOrLowestSubordinateDesignation(Employee employee, boolean isHighest) {
         // Get current employee's designation
-        Designation compare = employee.getDesignation();
+        Designation compare = employee.getSubordinates().first().getDesignation();
 
         // Check designation of each subordinate
         for (Employee sub : employee.getSubordinates()) {

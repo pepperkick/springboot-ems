@@ -9,6 +9,7 @@ import com.pepperkick.ems.repository.EmployeeRepository;
 import com.pepperkick.ems.requestbody.DesignationRequestPostBody;
 import com.pepperkick.ems.util.MessageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class DesignationService {
     private final MessageHelper messageHelper;
 
     @Autowired
-    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, EmployeeService employeeService, MessageHelper messageHelper) {
+    public DesignationService(DesignationRepository designationRepository, EmployeeRepository employeeRepository, @Lazy EmployeeService employeeService, MessageHelper messageHelper) {
         this.designationRepository = designationRepository;
         this.employeeRepository = employeeRepository;
         this.employeeService = employeeService;
@@ -181,7 +182,7 @@ public class DesignationService {
 
         // If employee list is not empty then return 400
         // Cannot delete designation while employees have this designation assigned to it
-        if (employees.isEmpty())
+        if (!employees.isEmpty())
             throw new BadRequestException(messageHelper.getMessage("error.route.designation.restriction.cannot_have_employee_assigned"));
 
         // Delete the designation
