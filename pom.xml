@@ -13,6 +13,7 @@
 	<modules>
 		<module>ui</module>
 		<module>server</module>
+		<module>batch</module>
 	</modules>
 
 	<groupId>com.pepperkick</groupId>
