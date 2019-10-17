@@ -96,7 +96,7 @@ spec:
     spec:
       containers:
         - name: ems-server
-          image: pepperkick/ems
+          image: pepperkick/ems:1.0.0
           ports:
             - containerPort: 8080
           env:
