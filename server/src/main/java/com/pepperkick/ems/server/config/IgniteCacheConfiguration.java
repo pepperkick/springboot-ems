@@ -21,34 +21,38 @@ public class IgniteCacheConfiguration {
 
     @Bean
     public Ignite igniteInstance() {
-        Dotenv env = Dotenv.load();
-        if (env.get("USE_IGNITE", "false").equalsIgnoreCase("true")) {
-            boolean isClient = env.get("IGNITE_CLIENT", "false").equalsIgnoreCase("true");
-            IgniteConfiguration config = new IgniteConfiguration();
+        try {
+            Dotenv env = Dotenv.load();
+            if (env.get("USE_IGNITE", "false").equalsIgnoreCase("true")) {
+                boolean isClient = env.get("IGNITE_CLIENT", "false").equalsIgnoreCase("true");
+                IgniteConfiguration config = new IgniteConfiguration();
 
-            ArrayList<String> addresses = new ArrayList<>();
-            TcpDiscoverySpi discoSpi = new TcpDiscoverySpi();
-            TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
+                ArrayList<String> addresses = new ArrayList<>();
+                TcpDiscoverySpi discoSpi = new TcpDiscoverySpi();
+                TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
 
-            if (isClient) {
-                config.setClientMode(true);
-                String address = env.get("IGNITE_HOST", "localhost") + ":" + env.get("IGNITE_PORT", "47500");
-                addresses.add(address);
-            } else {
-                config.setClientMode(false);
-                addresses.add("127.0.0.1:47500..47509");
+                if (isClient) {
+                    config.setClientMode(true);
+                    String address = env.get("IGNITE_HOST", "localhost") + ":" + env.get("IGNITE_PORT", "47500");
+                    addresses.add(address);
+                } else {
+                    config.setClientMode(false);
+                    addresses.add("127.0.0.1:47500..47509");
+                }
+
+                ipFinder.setAddresses(addresses);
+                discoSpi.setIpFinder(ipFinder);
+                config.setDiscoverySpi(discoSpi);
+
+                CacheConfiguration employeeCache = new CacheConfiguration<>("EmployeeCache").
+                        setIndexedTypes(Integer.class, Employee.class);
+
+                config.setCacheConfiguration(employeeCache);
+
+                return Ignition.start(config);
             }
-
-            ipFinder.setAddresses(addresses);
-            discoSpi.setIpFinder(ipFinder);
-            config.setDiscoverySpi(discoSpi);
-
-            CacheConfiguration employeeCache = new CacheConfiguration<>("EmployeeCache").
-                    setIndexedTypes(Integer.class, Employee.class);
-
-            config.setCacheConfiguration(employeeCache);
-
-            return Ignition.start(config);
+        } catch (Exception e) {
+            return null;
         }
 
         return null;
