@@ -11,6 +11,7 @@
 	<groupId>com.pepperkick.ems</groupId>
 	<artifactId>server</artifactId>
 	<name>server</name>
+	<version>1.0.0</version>
 	<description>Employee Management System Server in SpringBoot</description>
 
 	<properties>
@@ -157,7 +158,7 @@
 							<arguments>
 								<argument>build</argument>
 								<argument>--tag</argument>
-								<argument>pepperkick/ems:${image.version}</argument>
+								<argument>pepperkick/ems:${project.version}</argument>
 								<argument>..</argument>
 							</arguments>
 						</configuration>
